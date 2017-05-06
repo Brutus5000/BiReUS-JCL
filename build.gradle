@@ -22,5 +22,7 @@ dependencies {
 //    compile group: 'org.jgrapht', name: 'jgrapht-ext', version: '1.0.1'
     compile group: 'commons-io', name: 'commons-io', version: '2.5'
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
-    compile group: 'org.codehaus.plexus', name: 'plexus-archiver', version: '3.4'
+    compile group: 'org.apache.commons', name: 'commons-compress', version: '1.13'
+    compile group: 'org.tukaani', name: 'xz', version: '1.6'
+
 }
