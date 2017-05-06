@@ -9,8 +9,8 @@ import java.net.URL;
 public class DownloadException extends IOException {
     final URL url;
 
-    public DownloadException(Throwable cause, URL url, URL url1) {
+    public DownloadException(Throwable cause, URL url) {
         super(cause);
-        this.url = url1;
+        this.url = url;
     }
 }
