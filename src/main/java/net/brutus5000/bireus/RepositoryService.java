@@ -138,15 +138,9 @@ public class RepositoryService {
                     log.trace("Delete and rewrite {}", Repository.BIREUS_INFO_FILE);
                     repository.getInfoPath().toFile().delete();
                     objectMapper.writeValue(repository.getInfoPath().toFile(), repository);
-                } catch (DownloadException e) {
-                    val message = MessageFormat.format("Download of patchfile failed (from=`{0}`, to=`{1}`)", versionFrom, versionTo);
-                    val exception = new CheckoutException(message, repository, versionTo, e);
-                    log.error(message, exception);
-                    throw exception;
                 } catch (IOException e) {
-                    val message = "An IO error occured, see exception for details";
-                    log.error(message, e);
-                    throw new CheckoutException(message, repository, versionTo, e);
+                    log.error(e.getLocalizedMessage(), e);
+                    throw new CheckoutException(e.getLocalizedMessage(), repository, versionTo, e);
                 }
             }
         }
@@ -168,7 +162,7 @@ public class RepositoryService {
         notificationService.beginApplyPatch(versionFrom, versionTo);
 
         val patchTask = PatchTaskFactory.getInstance().create(repository.getProtocolVersion());
-        patchTask.run(this, notificationService, downloadService, repository.getAbsolutePath());
+        patchTask.run(this, notificationService, downloadService, repository.getPatchPath(versionFrom, versionTo));
 
         log.debug("Patch applied");
         notificationService.finishApplyPatch(versionFrom, versionTo);
