@@ -1,0 +1,7 @@
+{
+  "name": "repo_demo",
+  "strategy": "inst-bi",
+  "first_version": "v1",
+  "latest_version": "v2",
+  "protocol": 1
+}

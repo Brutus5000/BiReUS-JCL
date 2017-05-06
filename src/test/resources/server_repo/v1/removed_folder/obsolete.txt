@@ -1,0 +1,1 @@
+This file is obselete, because the folder will be removed in v2.
