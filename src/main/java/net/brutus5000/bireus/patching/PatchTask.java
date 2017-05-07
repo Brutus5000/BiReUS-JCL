@@ -7,7 +7,7 @@ import lombok.val;
 import net.brutus5000.bireus.data.DiffHead;
 import net.brutus5000.bireus.data.DiffItem;
 import net.brutus5000.bireus.data.Repository;
-import net.brutus5000.bireus.service.ArchiveExtractorService;
+import net.brutus5000.bireus.service.ArchiveService;
 import net.brutus5000.bireus.service.DownloadService;
 import net.brutus5000.bireus.service.NotificationService;
 import net.brutus5000.bireus.service.RepositoryService;
@@ -38,7 +38,7 @@ public abstract class PatchTask {
             temporaryFolder = createTemporaryFolder(patchFile.getFileName().toString() + "_");
 
             log.info("Begin decompressing patch `{}` to `{}`", patchFile.getFileName(), temporaryFolder.getFileName());
-            ArchiveExtractorService.extractTarXz(patchFile, temporaryFolder);
+            ArchiveService.extractTarXz(patchFile, temporaryFolder);
             log.info("Patch decompressed");
 
             log.trace("Loading {} from json to object", Repository.BIREUS_INFO_FILE);
@@ -75,7 +75,7 @@ public abstract class PatchTask {
      * @return Path to temporary folder
      * @throws IOException when folder can't be created
      */
-    private Path createTemporaryFolder(String prefix) throws IOException {
+    protected Path createTemporaryFolder(String prefix) throws IOException {
         Path parentDirectoryPath = repositoryService.getRepository()
                 .getAbsolutePath()
                 .resolve(Repository.BIREUS_INTERAL_FOLDER)

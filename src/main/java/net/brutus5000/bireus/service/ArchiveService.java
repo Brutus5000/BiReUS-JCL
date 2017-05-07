@@ -14,9 +14,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Slf4j
-public class ArchiveExtractorService {
+public class ArchiveService {
     /***
      * Extracts the result of an archiveInputStream into the given targetDirectory
      * @param archiveInputStream can be all kinds of supported compression methods
@@ -72,6 +74,27 @@ public class ArchiveExtractorService {
         } catch (IOException e) {
             log.error("Error on extracting tar-file `{}`", archiveFile.toString(), e);
             throw e;
+        }
+    }
+
+    public static void compressFolderToZip(Path sourceDir, Path targetFile) throws IOException {
+        try (ZipOutputStream zipFile = new ZipOutputStream(new FileOutputStream(targetFile.toFile()))) {
+            compressDirectoryToZipfile(sourceDir, sourceDir, zipFile);
+        }
+    }
+
+    private static void compressDirectoryToZipfile(Path rootDir, Path sourceDir, ZipOutputStream out) throws IOException {
+        for (File file : sourceDir.toFile().listFiles()) {
+            if (file.isDirectory()) {
+                compressDirectoryToZipfile(rootDir, sourceDir.resolve(file.toPath()), out);
+            } else {
+                ZipEntry entry = new ZipEntry(rootDir.relativize(file.toPath()).toString());
+                out.putNextEntry(entry);
+
+                try (FileInputStream in = new FileInputStream(sourceDir.resolve(file.toPath()).toFile())) {
+                    IOUtils.copy(in, out);
+                }
+            }
         }
     }
 }

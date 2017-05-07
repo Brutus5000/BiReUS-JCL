@@ -5,6 +5,7 @@ import org.apache.commons.io.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import net.brutus5000.bireus.data.DiffItem;
+import net.brutus5000.bireus.service.ArchiveService;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -86,6 +87,12 @@ public class PatchTaskV1 extends PatchTask {
     }
 
     private void patchArchiveFile(DiffItem item, Path basePath, Path patchPath, boolean insideArchive) throws IOException {
-        // TODO: add implementation
+        Path temporaryFolder = createTemporaryFolder("extracted_" + patchPath.getFileName().toString() + "_");
+
+        ArchiveService.extractZip(patchPath, temporaryFolder);
+        patch(item, temporaryFolder, patchPath.resolve(item.getName()), true);
+        ArchiveService.compressFolderToZip(temporaryFolder, basePath);
+
+        temporaryFolder.toFile().deleteOnExit();
     }
 }
