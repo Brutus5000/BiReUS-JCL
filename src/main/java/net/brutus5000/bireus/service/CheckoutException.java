@@ -1,4 +1,4 @@
-package net.brutus5000.bireus;
+package net.brutus5000.bireus.service;
 
 import lombok.Getter;
 import net.brutus5000.bireus.data.Repository;

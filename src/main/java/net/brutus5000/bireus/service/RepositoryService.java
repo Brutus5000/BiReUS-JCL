@@ -1,4 +1,4 @@
-package net.brutus5000.bireus;
+package net.brutus5000.bireus.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -9,6 +9,7 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DirectedWeightedPseudograph;
 import org.jgrapht.io.EdgeProvider;
 import org.jgrapht.io.GmlImporter;
+import org.jgrapht.io.ImportException;
 import org.jgrapht.io.VertexProvider;
 
 import lombok.Getter;
@@ -17,9 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import net.brutus5000.bireus.data.Repository;
 import net.brutus5000.bireus.patching.PatchTaskFactory;
-import net.brutus5000.bireus.service.DownloadException;
-import net.brutus5000.bireus.service.DownloadService;
-import net.brutus5000.bireus.service.NotificationService;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -37,7 +35,7 @@ public class RepositoryService {
     Repository repository;
     Graph<String, DefaultEdge> versionGraph;
 
-    public RepositoryService(Path absolutePath) throws Exception {
+    public RepositoryService(Path absolutePath) throws IOException, ImportException {
         log.debug("Creating repository service for path `{}`", absolutePath);
 
         log.trace("Loading {}", Repository.BIREUS_INFO_FILE);

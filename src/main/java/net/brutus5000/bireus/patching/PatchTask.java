@@ -4,13 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import net.brutus5000.bireus.RepositoryService;
 import net.brutus5000.bireus.data.DiffHead;
 import net.brutus5000.bireus.data.DiffItem;
 import net.brutus5000.bireus.data.Repository;
 import net.brutus5000.bireus.service.ArchiveExtractorService;
 import net.brutus5000.bireus.service.DownloadService;
 import net.brutus5000.bireus.service.NotificationService;
+import net.brutus5000.bireus.service.RepositoryService;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,7 +24,7 @@ public abstract class PatchTask {
     protected NotificationService notificationService;
     protected DownloadService downloadService;
 
-    public abstract String getVersion();
+    public abstract int getVersion();
 
     public void run(RepositoryService repositoryService, NotificationService notificationService, DownloadService downloadService, Path patchFile) throws IOException {
         log.debug("Started PatchTask run using {} (protocolVersion=`{}`)", getClass().getCanonicalName(), getVersion());
@@ -38,20 +38,19 @@ public abstract class PatchTask {
             temporaryFolder = createTemporaryFolder(patchFile.getFileName().toString() + "_");
 
             log.info("Begin decompressing patch `{}` to `{}`", patchFile.getFileName(), temporaryFolder.getFileName());
-            ArchiveExtractorService.extract(patchFile, temporaryFolder);
+            ArchiveExtractorService.extractTarXz(patchFile, temporaryFolder);
             log.info("Patch decompressed");
 
             log.trace("Loading {} from json to object", Repository.BIREUS_INFO_FILE);
             val infoFile = temporaryFolder
                     .resolve(Repository.BIREUS_INTERAL_FOLDER)
-                    .resolve(Repository.BIREUS_INFO_FILE)
                     .toFile();
             val objectMapper = new ObjectMapper();
             val diffHead = objectMapper.readValue(infoFile, DiffHead.class);
 
-            if (!Objects.equals(diffHead.getBaseVersion(), this.getVersion())) {
+            if (!Objects.equals(diffHead.getProtocol(), this.getVersion())) {
                 val message = MessageFormat.format("bireus protocol version `{0}` doesn't match patcher task version `{1}`",
-                        diffHead.getBaseVersion(), this.getVersion());
+                        diffHead.getProtocol(), this.getVersion());
                 notificationService.error(message);
                 throw new IOException(message);
             }
@@ -63,7 +62,7 @@ public abstract class PatchTask {
             }
 
             DiffItem rootItem = diffHead.getItems().stream().findFirst().get();
-            patch(rootItem, repositoryService.getRepository().getAbsolutePath(), patchFile);
+            patch(rootItem, repositoryService.getRepository().getAbsolutePath(), temporaryFolder);
         } finally {
             if (temporaryFolder != null) {
                 temporaryFolder.toFile().deleteOnExit();
@@ -76,19 +75,21 @@ public abstract class PatchTask {
      * @return Path to temporary folder
      * @throws IOException when folder can't be created
      */
-    private Path createTemporaryFolder(String preix) throws IOException {
+    private Path createTemporaryFolder(String prefix) throws IOException {
         Path parentDirectoryPath = repositoryService.getRepository()
                 .getAbsolutePath()
-                .resolve(Repository.BIREUS_INTERAL_FOLDER);
+                .resolve(Repository.BIREUS_INTERAL_FOLDER)
+                .resolve(Repository.BIREUS_TMP_SUBFOLDER);
 
         log.debug("Create temp folder in {}", parentDirectoryPath.getFileName());
 
-        return Files.createTempDirectory(parentDirectoryPath, preix);
+        parentDirectoryPath.toFile().mkdir();
+        return Files.createTempDirectory(parentDirectoryPath, prefix);
     }
 
-    protected void patch(DiffItem item, Path basePath, Path patchPath) {
-        patch(item, basePath, patchPath, false);
+    protected void patch(DiffItem diffItem, Path basePath, Path patchPath) throws IOException {
+        patch(diffItem, basePath, patchPath, false);
     }
 
-    protected abstract void patch(DiffItem item, Path basePath, Path patchPath, boolean insideArchive);
+    protected abstract void patch(DiffItem diffItem, Path basePath, Path patchPath, boolean insideArchive) throws IOException;
 }

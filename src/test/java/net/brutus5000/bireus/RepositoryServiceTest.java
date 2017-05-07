@@ -9,6 +9,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import net.brutus5000.bireus.service.DownloadService;
 import net.brutus5000.bireus.service.NotificationService;
+import net.brutus5000.bireus.service.RepositoryService;
 
 import java.io.IOException;
 import java.nio.file.Path;

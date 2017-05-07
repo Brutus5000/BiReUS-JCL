@@ -1,16 +1,18 @@
 package net.brutus5000.bireus.data;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@AllArgsConstructor
-@Getter
 public enum PatchAction {
-    ADD("add"),
-    REMOVE("remove"),
-    DELTA("delta"),
-    BSDIFF("bsdiff"),
-    ZIPDELTA("zipdelta");
-
-    String value;
+    @JsonProperty("unchanged")
+    UNCHANGED,
+    @JsonProperty("add")
+    ADD,
+    @JsonProperty("remove")
+    REMOVE,
+    @JsonProperty("delta")
+    DELTA,
+    @JsonProperty("bsdiff")
+    BSDIFF,
+    @JsonProperty("zipdelta")
+    ZIPDELTA;
 }

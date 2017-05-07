@@ -16,6 +16,7 @@ import java.text.MessageFormat;
 public class Repository {
     public static final String BIREUS_INTERAL_FOLDER = ".bireus";
     public static final String BIREUS_PATCHES_SUBFOLDER = "__patches__";
+    public static final String BIREUS_TMP_SUBFOLDER = "__temp__";
     public static final String BIREUS_INFO_FILE = "info.json";
     public static final String BIREUS_VERSIONS_FILE = "versions.gml";
     public static final String BIREUS_PATCH_FILE_PATTERN = "{0}_to_{1}.tar.xz";
