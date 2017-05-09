@@ -17,7 +17,6 @@ public class TestPreparator {
         Path sourcePath = Paths.get("src/test/resources/server_repo/v1").toAbsolutePath();
         Path destPath = Files.createTempDirectory("bireus_");
 
-//        Files.copy(sourcePath, destPath);
         FileUtils.copyDirectory(sourcePath.toFile(), destPath.toFile());
 
         destPath.resolve(Repository.BIREUS_INTERAL_FOLDER).toFile().mkdir();
@@ -28,9 +27,9 @@ public class TestPreparator {
         repository.setUrl(new URL("file://" + getServerRepositoryPath().toString()));//new URL("http://localhost/BiReUS"));
         objectMapper.writeValue(destPath.resolve(Repository.BIREUS_INTERAL_FOLDER).resolve(Repository.BIREUS_INFO_FILE).toFile(), repository);
 
-        FileUtils.copyFile(
-                sourcePath.resolveSibling(Repository.BIREUS_VERSIONS_FILE).toFile(),
-                destPath.resolve(Repository.BIREUS_INTERAL_FOLDER).resolve(Repository.BIREUS_VERSIONS_FILE).toFile()
+        Files.copy(
+                sourcePath.resolveSibling(Repository.BIREUS_VERSIONS_FILE),
+                destPath.resolve(Repository.BIREUS_INTERAL_FOLDER).resolve(Repository.BIREUS_VERSIONS_FILE)
         );
 
         return destPath;

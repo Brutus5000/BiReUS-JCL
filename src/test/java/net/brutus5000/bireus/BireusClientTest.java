@@ -5,7 +5,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
-import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,9 +49,8 @@ public class BireusClientTest {
                     .resolve(Repository.BIREUS_PATCHES_SUBFOLDER)
                     .resolve(MessageFormat.format(Repository.BIREUS_PATCH_FILE_PATTERN, "v1", "v2"));
             Path destPath = invocation.getArgumentAt(1, Path.class);
-            FileUtils.copyFile(
-                    srcPath.toFile(),
-                    destPath.toFile());
+            Files.createDirectories(destPath.getParent());
+            Files.copy(srcPath, destPath);
             return null;
 
         }).when(downloadService).download(any(), any());

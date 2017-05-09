@@ -1,14 +1,22 @@
 package net.brutus5000.bireus.patching;
 
+import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.io.FileUtils;
 
+import jbsdiff.InvalidHeaderException;
+import jbsdiff.Patch;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import net.brutus5000.bireus.data.DiffItem;
+import net.brutus5000.bireus.data.Repository;
 import net.brutus5000.bireus.service.ArchiveService;
 
 import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Objects;
 
 @Slf4j
 public class PatchTaskV1 extends PatchTask {
@@ -43,18 +51,55 @@ public class PatchTaskV1 extends PatchTask {
         notificationService.beginPatchingFile(basePath);
         switch (item.getPatchAction()) {
             case ADD:
-                if (basePath.toFile().exists())
-                    basePath.toFile().delete();
-                FileUtils.copyFile(patchPath.toFile(), basePath.toFile());
+                Files.deleteIfExists(basePath);
+                Files.copy(patchPath, basePath);
                 break;
             case REMOVE:
-                basePath.toFile().delete();
+                Files.delete(basePath);
                 break;
             case ZIPDELTA:
                 patchArchiveFile(item, basePath, patchPath, insideArchive);
                 break;
             case BSDIFF:
-                // TODO: add implementation
+                String crcBeforePatching = Long.toHexString(FileUtils.checksumCRC32(basePath.toFile()));
+
+                Path patchedPath = Paths.get(basePath + ".patched");
+
+                try {
+                    if (!Objects.equals(item.getBaseCrc(), crcBeforePatching)) {
+                        val exception = new CrcMismatchException(basePath, item.getBaseCrc(), crcBeforePatching);
+                        log.error("CRC mismatch in unpatched base file `{}` (expected={}, actual={}), patching aborted", basePath, item.getBaseCrc(), crcBeforePatching, exception);
+                        notificationService.crcMismatch(basePath);
+                        throw exception;
+                    }
+
+                    try {
+                        Patch.patch(basePath.toFile(), patchedPath.toFile(), patchPath.toFile());
+                    } catch (CompressorException | InvalidHeaderException e) {
+                        log.error("Error on applying bsdiff4", e);
+                        throw new IOException(e);
+                    }
+
+                    Files.delete(basePath);
+                    Files.move(patchedPath, basePath);
+
+                    String crcAfterPatching = Long.toHexString(FileUtils.checksumCRC32(basePath.toFile()));
+                    if (!Objects.equals(item.getBaseCrc(), crcBeforePatching)) {
+                        val exception = new CrcMismatchException(basePath, item.getBaseCrc(), crcBeforePatching);
+                        log.error("CRC mismatch in patched base file `{}` (expected={}, actual={}), patching aborted", basePath, item.getBaseCrc(), crcBeforePatching, exception);
+                        notificationService.crcMismatch(basePath);
+                        throw exception;
+                    }
+                } catch (CrcMismatchException e) {
+                    if (insideArchive)
+                        throw e;
+
+                    log.info("Emergency fallback: download {} from original source", basePath);
+                    Repository repository = repositoryService.getRepository();
+                    Files.delete(basePath);
+                    URL fileUrl = new URL(repository.getUrl() + "/" + targetVersion + "/" + basePath.relativize(repository.getAbsolutePath()).toUri().toURL());
+                    downloadService.download(fileUrl, basePath);
+                }
                 break;
             case UNCHANGED:
                 break;
@@ -70,9 +115,8 @@ public class PatchTaskV1 extends PatchTask {
         notificationService.beginPatchingDirectory(basePath);
         switch (item.getPatchAction()) {
             case ADD:
-                if (basePath.toFile().exists())
-                    FileUtils.deleteDirectory(basePath.toFile());
-                FileUtils.copyDirectory(patchPath.toFile(), basePath.toFile());
+                Files.deleteIfExists(basePath);
+                Files.copy(patchPath, basePath);
                 break;
             case REMOVE:
                 FileUtils.deleteDirectory(basePath.toFile());
@@ -87,12 +131,16 @@ public class PatchTaskV1 extends PatchTask {
     }
 
     private void patchArchiveFile(DiffItem item, Path basePath, Path patchPath, boolean insideArchive) throws IOException {
-        Path temporaryFolder = createTemporaryFolder("extracted_" + patchPath.getFileName().toString() + "_");
+        Path temporaryFolder = createTemporaryFolder("extracted_" + patchPath.getFileName() + "_");
 
+        log.debug("Extracting files to `{}`", temporaryFolder);
         ArchiveService.extractZip(patchPath, temporaryFolder);
+
         patch(item, temporaryFolder, patchPath.resolve(item.getName()), true);
+
+        log.debug("Re-compressing files from `{}`", temporaryFolder);
         ArchiveService.compressFolderToZip(temporaryFolder, basePath);
 
-        temporaryFolder.toFile().deleteOnExit();
+        Files.delete(temporaryFolder);
     }
 }

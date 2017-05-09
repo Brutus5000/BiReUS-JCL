@@ -24,6 +24,8 @@ public abstract class PatchTask {
     protected NotificationService notificationService;
     protected DownloadService downloadService;
 
+    protected String targetVersion;
+
     public abstract int getVersion();
 
     public void run(RepositoryService repositoryService, NotificationService notificationService, DownloadService downloadService, Path patchFile) throws IOException {
@@ -35,7 +37,7 @@ public abstract class PatchTask {
 
         Path temporaryFolder = null;
         try {
-            temporaryFolder = createTemporaryFolder(patchFile.getFileName().toString() + "_");
+            temporaryFolder = createTemporaryFolder(patchFile.getFileName() + "_");
 
             log.info("Begin decompressing patch `{}` to `{}`", patchFile.getFileName(), temporaryFolder.getFileName());
             ArchiveService.extractTarXz(patchFile, temporaryFolder);
@@ -47,6 +49,7 @@ public abstract class PatchTask {
                     .toFile();
             val objectMapper = new ObjectMapper();
             val diffHead = objectMapper.readValue(infoFile, DiffHead.class);
+            targetVersion = diffHead.getTargetVersion();
 
             if (!Objects.equals(diffHead.getProtocol(), this.getVersion())) {
                 val message = MessageFormat.format("bireus protocol version `{0}` doesn't match patcher task version `{1}`",
@@ -83,7 +86,7 @@ public abstract class PatchTask {
 
         log.debug("Create temp folder in {}", parentDirectoryPath.getFileName());
 
-        parentDirectoryPath.toFile().mkdir();
+        Files.createDirectories(parentDirectoryPath);
         return Files.createTempDirectory(parentDirectoryPath, prefix);
     }
 

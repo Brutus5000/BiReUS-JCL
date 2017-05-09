@@ -11,11 +11,13 @@ import org.apache.commons.io.IOUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 public class ArchiveService {
@@ -31,18 +33,16 @@ public class ArchiveService {
 
         try {
             while ((entry = archiveInputStream.getNextEntry()) != null) {
-                File file = new File(targetDirectory.toFile(), entry.getName());
-
-                //if the entry is a directory, it needs to be created, only files can be extracted
+                Path path = targetDirectory.resolve(entry.getName());
                 if (entry.isDirectory()) {
-                    file.mkdirs();
+                    Files.createDirectories(path);
                 } else {
                     byte[] content = new byte[(int) entry.getSize()];
                     offset = 0;
                     archiveInputStream.read(content, offset, content.length - offset);
 
-                    try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-                        IOUtils.write(content, fileOutputStream);
+                    try (OutputStream outputStream = Files.newOutputStream(path)) {
+                        IOUtils.write(content, outputStream);
                     } catch (IOException e) {
                         log.error("Error on writing file `{0}`", entry.getName(), e);
                         throw e;
@@ -55,7 +55,7 @@ public class ArchiveService {
     }
 
     public static void extractZip(Path archiveFile, Path targetDirectory) throws IOException {
-        try (FileInputStream fileInputStream = new FileInputStream(archiveFile.toFile());
+        try (InputStream fileInputStream = Files.newInputStream(archiveFile);
              ArchiveInputStream zipInputStream = new ZipArchiveInputStream(fileInputStream)) {
 
             extractArchiveStream(zipInputStream, targetDirectory);
@@ -66,7 +66,7 @@ public class ArchiveService {
     }
 
     public static void extractTarXz(Path archiveFile, Path targetDirectory) throws IOException {
-        try (FileInputStream fileInputStream = new FileInputStream(archiveFile.toFile());
+        try (InputStream fileInputStream = Files.newInputStream(archiveFile);
              XZCompressorInputStream xzCompressorInputStream = new XZCompressorInputStream(fileInputStream);
              TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(xzCompressorInputStream)) {
 
@@ -78,21 +78,23 @@ public class ArchiveService {
     }
 
     public static void compressFolderToZip(Path sourceDir, Path targetFile) throws IOException {
-        try (ZipArchiveOutputStream zipFile = new ZipArchiveOutputStream(new FileOutputStream(targetFile.toFile()))) {
+        try (ZipArchiveOutputStream zipFile = new ZipArchiveOutputStream(Files.newOutputStream(targetFile))) {
             compressDirectoryToZipfile(sourceDir, sourceDir, zipFile);
         }
     }
 
     private static void compressDirectoryToZipfile(Path rootDir, Path sourceDir, ZipArchiveOutputStream out) throws IOException {
-        for (File file : sourceDir.toFile().listFiles()) {
-            if (file.isDirectory()) {
-                compressDirectoryToZipfile(rootDir, sourceDir.resolve(file.toPath()), out);
-            } else {
-                ZipArchiveEntry entry = new ZipArchiveEntry(rootDir.relativize(file.toPath()).toString());
-                out.putArchiveEntry(entry);
+        try (Stream<Path> pathStream = Files.list(sourceDir)) {
+            for (Path path : pathStream.collect(Collectors.toList())) {
+                if (Files.isDirectory(path)) {
+                    compressDirectoryToZipfile(rootDir, sourceDir.resolve(path), out);
+                } else {
+                    ZipArchiveEntry entry = new ZipArchiveEntry(rootDir.relativize(path).toString());
+                    out.putArchiveEntry(entry);
 
-                try (FileInputStream in = new FileInputStream(sourceDir.resolve(file.toPath()).toFile())) {
-                    IOUtils.copy(in, out);
+                    try (InputStream in = Files.newInputStream(sourceDir.resolve(path))) {
+                        IOUtils.copy(in, out);
+                    }
                 }
             }
         }

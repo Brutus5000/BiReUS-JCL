@@ -20,6 +20,7 @@ import net.brutus5000.bireus.data.Repository;
 import net.brutus5000.bireus.patching.PatchTaskFactory;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.Objects;
@@ -134,7 +135,7 @@ public class RepositoryService {
 
                     repository.setCurrentVersion(versionTo);
                     log.trace("Delete and rewrite {}", Repository.BIREUS_INFO_FILE);
-                    repository.getInfoPath().toFile().delete();
+                    Files.delete(repository.getInfoPath());
                     objectMapper.writeValue(repository.getInfoPath().toFile(), repository);
                 } catch (IOException e) {
                     log.error(e.getLocalizedMessage(), e);
