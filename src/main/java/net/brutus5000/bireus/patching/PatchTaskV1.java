@@ -61,7 +61,7 @@ public class PatchTaskV1 extends PatchTask {
                 patchArchiveFile(item, basePath, patchPath, insideArchive);
                 break;
             case BSDIFF:
-                String crcBeforePatching = Long.toHexString(FileUtils.checksumCRC32(basePath.toFile()));
+                String crcBeforePatching = "0x" + Long.toHexString(FileUtils.checksumCRC32(basePath.toFile()));
 
                 Path patchedPath = Paths.get(basePath + ".patched");
 
@@ -134,9 +134,10 @@ public class PatchTaskV1 extends PatchTask {
         Path temporaryFolder = createTemporaryFolder("extracted_" + patchPath.getFileName() + "_");
 
         log.debug("Extracting files to `{}`", temporaryFolder);
-        ArchiveService.extractZip(patchPath, temporaryFolder);
+        // extract the original files, attention: the patch files aren't zipped anymore
+        ArchiveService.extractZip(basePath, temporaryFolder);
 
-        patch(item, temporaryFolder, patchPath.resolve(item.getName()), true);
+        patch(item, temporaryFolder, patchPath, true);
 
         log.debug("Re-compressing files from `{}`", temporaryFolder);
         ArchiveService.compressFolderToZip(temporaryFolder, basePath);

@@ -37,12 +37,8 @@ public class ArchiveService {
                 if (entry.isDirectory()) {
                     Files.createDirectories(path);
                 } else {
-                    byte[] content = new byte[(int) entry.getSize()];
-                    offset = 0;
-                    archiveInputStream.read(content, offset, content.length - offset);
-
                     try (OutputStream outputStream = Files.newOutputStream(path)) {
-                        IOUtils.write(content, outputStream);
+                        IOUtils.copy(archiveInputStream, outputStream);
                     } catch (IOException e) {
                         log.error("Error on writing file `{0}`", entry.getName(), e);
                         throw e;
@@ -60,7 +56,7 @@ public class ArchiveService {
 
             extractArchiveStream(zipInputStream, targetDirectory);
         } catch (IOException e) {
-            log.error("Error on extracting zip-file `{}`", archiveFile.toString(), e);
+            log.error("Error on extracting zip-file `{}`", archiveFile, e);
             throw e;
         }
     }
@@ -72,7 +68,7 @@ public class ArchiveService {
 
             extractArchiveStream(tarArchiveInputStream, targetDirectory);
         } catch (IOException e) {
-            log.error("Error on extracting tar-file `{}`", archiveFile.toString(), e);
+            log.error("Error on extracting tar-file `{}`", archiveFile, e);
             throw e;
         }
     }

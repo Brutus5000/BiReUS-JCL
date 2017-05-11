@@ -26,7 +26,7 @@ public class ArchiveServiceTest {
     @Test
     public void testUnzipFile() throws Exception {
         Path tempDirectory = Files.createTempDirectory("BiReUS-JUnit_");
-        Path p = Paths.get("C:\\Users\\Brutus5000\\AppData\\Local\\Temp\\bireus_3155048317880404088\\zip_sub\\changed-subfolder.test");
+        Path p = Paths.get("D:\\Dev\\bireus-jcl\\src\\test\\resources\\server_repo\\v1\\zip_sub\\changed-subfolder.test");
 
         ArchiveService.extractZip(p, tempDirectory);
     }
