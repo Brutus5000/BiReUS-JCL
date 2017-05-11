@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -90,18 +91,18 @@ public class ArchiveService {
 
     private static void compressDirectoryToZipfile(Path rootDir, Path sourceDir, ZipArchiveOutputStream out) throws IOException {
         try (Stream<Path> pathStream = Files.list(sourceDir)) {
-            for (Path path : pathStream.collect(Collectors.toList())) {
+            List<Path> folderContent = pathStream.collect(Collectors.toList());
+            for (Path path : folderContent) {
+                ZipArchiveEntry entry = new ZipArchiveEntry(path.toFile(), rootDir.relativize(path).toString());
+                out.putArchiveEntry(entry);
                 if (Files.isDirectory(path)) {
+                    out.closeArchiveEntry();
                     compressDirectoryToZipfile(rootDir, path, out);
                 } else {
-                    ZipArchiveEntry entry = new ZipArchiveEntry(rootDir.relativize(path).toString());
-                    out.putArchiveEntry(entry);
-
                     try (InputStream in = Files.newInputStream(path)) {
                         IOUtils.copy(in, out);
+                        out.closeArchiveEntry();
                     }
-
-                    out.closeArchiveEntry();
                 }
             }
         }
