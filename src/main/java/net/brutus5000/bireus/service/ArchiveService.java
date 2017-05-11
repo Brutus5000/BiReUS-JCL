@@ -73,6 +73,15 @@ public class ArchiveService {
         }
     }
 
+    /**
+     * Compresses a whole directory recursively to zip archive
+     * Attention: the given folder itself is not listed as a folder inside the archive,
+     * all files directly inside the folder are root level in the archive
+     *
+     * @param sourceDir  directory path that content will be zipped
+     * @param targetFile path to the resulting zip file
+     * @throws IOException on all IO errors
+     */
     public static void compressFolderToZip(Path sourceDir, Path targetFile) throws IOException {
         try (ZipArchiveOutputStream zipFile = new ZipArchiveOutputStream(Files.newOutputStream(targetFile))) {
             compressDirectoryToZipfile(sourceDir, sourceDir, zipFile);
@@ -83,14 +92,16 @@ public class ArchiveService {
         try (Stream<Path> pathStream = Files.list(sourceDir)) {
             for (Path path : pathStream.collect(Collectors.toList())) {
                 if (Files.isDirectory(path)) {
-                    compressDirectoryToZipfile(rootDir, sourceDir.resolve(path), out);
+                    compressDirectoryToZipfile(rootDir, path, out);
                 } else {
                     ZipArchiveEntry entry = new ZipArchiveEntry(rootDir.relativize(path).toString());
                     out.putArchiveEntry(entry);
 
-                    try (InputStream in = Files.newInputStream(sourceDir.resolve(path))) {
+                    try (InputStream in = Files.newInputStream(path)) {
                         IOUtils.copy(in, out);
                     }
+
+                    out.closeArchiveEntry();
                 }
             }
         }

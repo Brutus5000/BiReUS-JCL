@@ -142,6 +142,6 @@ public class PatchTaskV1 extends PatchTask {
         log.debug("Re-compressing files from `{}`", temporaryFolder);
         ArchiveService.compressFolderToZip(temporaryFolder, basePath);
 
-        Files.delete(temporaryFolder);
+        FileUtils.deleteDirectory(temporaryFolder.toFile());
     }
 }

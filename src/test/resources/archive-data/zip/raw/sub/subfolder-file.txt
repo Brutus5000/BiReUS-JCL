@@ -1,0 +1,2 @@
+Hello, I am the test file in the subfolder.
+Did you meet my brother in the root folder?
