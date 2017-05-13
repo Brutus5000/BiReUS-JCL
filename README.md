@@ -5,6 +5,10 @@
 BiReUS-jcl is a java client library for [BiReUS](https://github.com/Brutus5000/BiReUS) with the same feature set as the python client.
 For more details about BiReUS see the related [wiki](https://github.com/Brutus5000/BiReUS/wiki).
 
+[![Build status](https://travis-ci.org/Brutus5000/BiReUS-jcl.svg?branch=master)](https://travis-ci.org/Brutus5000/BiReUS-jcl)
+
+**Attention Non-Windows users:**
+To run the unit tests without failing, all .txt files in src/test/resources need to have their original line endings (see .travis.yml for fix).
 
 ## Dependencies
 * **Lombok** for less code overhead

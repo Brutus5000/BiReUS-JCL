@@ -17,19 +17,19 @@ public class TestUtil {
         assertTrue(FileUtils.contentEquals(fileA.toFile(), fileB.toFile()));
     }
 
-    public static  void assertFileEquals(Path folderA, Path folderB, Path file) throws IOException {
+    public static void assertFileEquals(Path folderA, Path folderB, Path file) throws IOException {
         assertFileEquals(folderA.resolve(file), folderB.resolve(file));
     }
 
-    public static  void assertFileEquals(Path folderA, Path folderB, String fileName) throws IOException {
+    public static void assertFileEquals(Path folderA, Path folderB, String fileName) throws IOException {
         assertFileEquals(folderA, folderB, Paths.get(fileName));
     }
 
-    public static  void assertZipFileEquals(Path folderA, Path folderB, String fileName) throws IOException {
+    public static void assertZipFileEquals(Path folderA, Path folderB, String fileName) throws IOException {
         assertZipFileEquals(folderA, folderB, Paths.get(fileName));
     }
 
-    public static  void assertZipFileEquals(Path folderA, Path folderB, Path file) throws IOException {
+    public static void assertZipFileEquals(Path folderA, Path folderB, Path file) throws IOException {
         Path tempDirectory = Files.createTempDirectory("bireus_");
 
         Path tempFolderA = Files.createDirectory(tempDirectory.resolve("folderA"));

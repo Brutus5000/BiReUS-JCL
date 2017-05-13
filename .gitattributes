@@ -1,0 +1,2 @@
+# to ensure binary compatibility we need to enforce keeping the line endings
+src/test/resources/* -text
