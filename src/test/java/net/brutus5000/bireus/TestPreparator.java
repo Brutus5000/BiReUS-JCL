@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 
 import net.brutus5000.bireus.data.Repository;
+import net.brutus5000.bireus.mocks.DownloadServiceMock;
 
 import java.io.IOException;
 import java.net.URL;
@@ -13,9 +14,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class TestPreparator {
+    private static final String TEMP_PREFIX = "bireus_";
+
     public static Path generateTemporaryClientRepositoryV1() throws IOException {
         Path sourcePath = Paths.get("src/test/resources/server_repo/v1").toAbsolutePath();
-        Path destPath = Files.createTempDirectory("bireus_");
+        Path destPath = Files.createTempDirectory(TEMP_PREFIX);
 
         FileUtils.copyDirectory(sourcePath.toFile(), destPath.toFile());
 
@@ -41,5 +44,20 @@ public class TestPreparator {
                 .resolve("test")
                 .resolve("resources")
                 .resolve("server_repo");
+    }
+
+    public static Path getLatestArchive() {
+        return getServerRepositoryPath()
+                .resolve("latest.tar.xz");
+    }
+
+    public static Path prepareDownloadForLatestClientRepository(DownloadServiceMock downloadService) throws IOException {
+        Path tempDirectory = Files.createTempDirectory(TEMP_PREFIX);
+
+        downloadService.addReadAction(url -> Files.readAllBytes(TestPreparator.getServerRepositoryPath().resolve(Repository.BIREUS_INFO_FILE)));
+        downloadService.addDownloadAction((url, path) -> Files.copy(TestPreparator.getServerRepositoryPath().resolve(Repository.BIREUS_VERSIONS_FILE), path));
+        downloadService.addDownloadAction((url, path) -> Files.copy(TestPreparator.getServerRepositoryPath().resolve(Repository.BIREUS_LATEST_VERSION_ARCHIVE), path));
+
+        return tempDirectory;
     }
 }

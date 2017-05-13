@@ -20,6 +20,7 @@ public class Repository {
     public static final String BIREUS_INFO_FILE = "info.json";
     public static final String BIREUS_VERSIONS_FILE = "versions.gml";
     public static final String BIREUS_PATCH_FILE_PATTERN = "{0}_to_{1}.tar.xz";
+    public static final String BIREUS_LATEST_VERSION_ARCHIVE = "latest.tar.xz";
 
     @JsonIgnore
     private Path absolutePath;

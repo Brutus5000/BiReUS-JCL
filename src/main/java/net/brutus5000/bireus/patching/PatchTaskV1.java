@@ -58,7 +58,7 @@ public class PatchTaskV1 extends PatchTask {
                 Files.delete(basePath);
                 break;
             case ZIPDELTA:
-                patchArchiveFile(item, basePath, patchPath, insideArchive);
+                patchArchiveFile(item, basePath, patchPath);
                 break;
             case BSDIFF:
                 String crcBeforePatching = "0x" + Long.toHexString(FileUtils.checksumCRC32(basePath.toFile()));
@@ -115,8 +115,8 @@ public class PatchTaskV1 extends PatchTask {
         notificationService.beginPatchingDirectory(basePath);
         switch (item.getPatchAction()) {
             case ADD:
-                Files.deleteIfExists(basePath);
-                Files.copy(patchPath, basePath);
+                FileUtils.deleteQuietly(basePath.toFile());
+                FileUtils.copyDirectory(patchPath.toFile(), basePath.toFile());
                 break;
             case REMOVE:
                 FileUtils.deleteDirectory(basePath.toFile());
@@ -130,7 +130,7 @@ public class PatchTaskV1 extends PatchTask {
         notificationService.finishPatchingDirectory(basePath);
     }
 
-    private void patchArchiveFile(DiffItem item, Path basePath, Path patchPath, boolean insideArchive) throws IOException {
+    private void patchArchiveFile(DiffItem item, Path basePath, Path patchPath) throws IOException {
         Path temporaryFolder = createTemporaryFolder("extracted_" + patchPath.getFileName() + "_");
 
         log.debug("Extracting files to `{}`", temporaryFolder);

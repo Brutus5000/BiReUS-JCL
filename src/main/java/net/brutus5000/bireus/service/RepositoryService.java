@@ -185,7 +185,7 @@ public class RepositoryService {
     private void updateRepositoryFromRemote() throws Exception {
         log.debug("Download repository info from remote");
         val infoJsonBytes = downloadService.read(repository.getRemoteInfoURL());
-        val newRepository = objectMapper.readValue(infoJsonBytes.array(), Repository.class);
+        val newRepository = objectMapper.readValue(infoJsonBytes, Repository.class);
 
         if (!repository.getLatestVersion().equals(newRepository.getLatestVersion())) {
             log.debug("Latest version has changed (old=`{}`, new=`{}`), updating {}", repository.getLatestVersion(), newRepository.getLatestVersion(), Repository.BIREUS_INFO_FILE);

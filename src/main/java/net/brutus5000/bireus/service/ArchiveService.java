@@ -30,7 +30,6 @@ public class ArchiveService {
      */
     private static void extractArchiveStream(ArchiveInputStream archiveInputStream, Path targetDirectory) throws IOException {
         ArchiveEntry entry;
-        int offset;
 
         try {
             while ((entry = archiveInputStream.getNextEntry()) != null) {

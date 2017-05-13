@@ -15,7 +15,7 @@ public class PatchTaskFactory {
     private HashMap<Integer, Class> patchTaskVersions = new HashMap<>();
 
     public PatchTaskFactory() {
-        patchTaskVersions.put(1, PatchTaskV1.class);
+        add(1, PatchTaskV1.class);
     }
 
     public void add(Integer version, Class patchTaskClass) {
