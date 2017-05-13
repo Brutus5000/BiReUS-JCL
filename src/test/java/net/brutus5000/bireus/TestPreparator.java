@@ -54,9 +54,9 @@ public class TestPreparator {
     public static Path prepareDownloadForLatestClientRepository(DownloadServiceMock downloadService) throws IOException {
         Path tempDirectory = Files.createTempDirectory(TEMP_PREFIX);
 
-        downloadService.addReadAction(url -> Files.readAllBytes(TestPreparator.getServerRepositoryPath().resolve(Repository.BIREUS_INFO_FILE)));
-        downloadService.addDownloadAction((url, path) -> Files.copy(TestPreparator.getServerRepositoryPath().resolve(Repository.BIREUS_VERSIONS_FILE), path));
-        downloadService.addDownloadAction((url, path) -> Files.copy(TestPreparator.getServerRepositoryPath().resolve(Repository.BIREUS_LATEST_VERSION_ARCHIVE), path));
+        downloadService.addReadAction(url -> Files.readAllBytes(getServerRepositoryPath().resolve(Repository.BIREUS_INFO_FILE)));
+        downloadService.addDownloadAction((url, path) -> Files.copy(getServerRepositoryPath().resolve(Repository.BIREUS_VERSIONS_FILE), path));
+        downloadService.addDownloadAction((url, path) -> Files.copy(getServerRepositoryPath().resolve(Repository.BIREUS_LATEST_VERSION_ARCHIVE), path));
 
         return tempDirectory;
     }

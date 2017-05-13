@@ -10,10 +10,12 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import net.brutus5000.bireus.service.ArchiveService;
+import org.tukaani.xz.XZFormatException;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.zip.ZipException;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ArchiveServiceTest {
@@ -44,6 +46,13 @@ public class ArchiveServiceTest {
         assertTrue(FileUtils.contentEquals(tempDirectory.resolve("sub/subfolder-file.txt").toFile(), rawData.resolve("sub/subfolder-file.txt").toFile()));
     }
 
+    @Test(expected = ZipException.class)
+    public void testExtractZip_WrongFormat() throws Exception {
+        Path testArchive = archiveData.resolve("tar_xz/test.tar.xz");
+
+        ArchiveService.extractZip(testArchive, tempDirectory);
+    }
+
     @Test
     public void testCompressFolderToZip() throws Exception {
         Path testArchive = archiveData.resolve("zip/test.zip");
@@ -68,5 +77,12 @@ public class ArchiveServiceTest {
         assertTrue(FileUtils.contentEquals(tempDirectory.resolve("root-file.txt").toFile(), rawData.resolve("root-file.txt").toFile()));
         assertTrue(FileUtils.contentEquals(tempDirectory.resolve("long-file.txt").toFile(), rawData.resolve("long-file.txt").toFile())); // due to issues with byte buffers > 4k
         assertTrue(FileUtils.contentEquals(tempDirectory.resolve("sub/subfolder-file.txt").toFile(), rawData.resolve("sub/subfolder-file.txt").toFile()));
+    }
+
+    @Test(expected = XZFormatException.class)
+    public void testExtractTarXz_WrongFileType() throws Exception {
+        Path testArchive = archiveData.resolve("zip/test.zip");
+
+        ArchiveService.extractTarXz(testArchive, tempDirectory);
     }
 }

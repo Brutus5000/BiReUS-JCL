@@ -145,7 +145,7 @@ public class RepositoryService {
         }
     }
 
-    private void downloadPatchFile(String versionFrom, String versionTo) throws DownloadException {
+    private void downloadPatchFile(String versionFrom, String versionTo) throws IOException {
         val patchDeltaFile = repository.getPatchPath(versionFrom, versionTo).toFile();
         if (!patchDeltaFile.exists()) {
             log.info("Download deltafile {} from server", patchDeltaFile.getName());
@@ -167,15 +167,16 @@ public class RepositoryService {
         notificationService.finishApplyPatch(versionFrom, versionTo);
     }
 
-    private void downloadPatch(String versionFrom, String versionTo) throws DownloadException {
+    private void downloadPatch(String versionFrom, String versionTo) throws IOException {
         val url = repository.getRemotePatchURL(versionFrom, versionTo);
         val patchPath = repository.getPatchPath(versionFrom, versionTo);
 
         try {
             notificationService.beginDownloadPatch(url);
+            Files.createDirectories(patchPath.getParent());
             downloadService.download(url, patchPath);
             notificationService.finishDownloadPatch(url);
-        } catch (DownloadException e) {
+        } catch (IOException e) {
             notificationService.error(MessageFormat.format("Downloading patch-file failed from `{0}`", url));
             log.error("Downloading patch-file failed from `{}`", url, e);
             throw e;

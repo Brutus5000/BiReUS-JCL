@@ -103,7 +103,7 @@ public class BireusClient {
         try {
             repositoryService.checkout(version);
         } catch (CheckoutException e) {
-            throw new BireusException(MessageFormat.format("Error on checking out version {}", version), e);
+            throw new BireusException(MessageFormat.format("Error on checking out version {0}", version), e);
         }
     }
 }

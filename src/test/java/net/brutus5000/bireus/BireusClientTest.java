@@ -1,7 +1,10 @@
 package net.brutus5000.bireus;
 
 
+import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
+import static net.brutus5000.bireus.TestUtil.assertFileEquals;
+import static net.brutus5000.bireus.TestUtil.assertZipFileEquals;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -40,57 +43,6 @@ public class BireusClientTest {
     Path firstVersionPath;
     Path latestVersionPath;
 
-    private void assertFileEquals(Path fileA, Path fileB) throws IOException {
-        assertTrue(FileUtils.contentEquals(fileA.toFile(), fileB.toFile()));
-    }
-
-    private void assertFileEquals(Path folderA, Path folderB, Path file) throws IOException {
-        assertFileEquals(folderA.resolve(file), folderB.resolve(file));
-    }
-
-    private void assertFileEquals(Path folderA, Path folderB, String fileName) throws IOException {
-        assertFileEquals(folderA, folderB, Paths.get(fileName));
-    }
-
-    private void assertZipFileEquals(Path folderA, Path folderB, String fileName) throws IOException {
-        assertZipFileEquals(folderA, folderB, Paths.get(fileName));
-    }
-
-    private void assertZipFileEquals(Path folderA, Path folderB, Path file) throws IOException {
-        Path tempDirectory = Files.createTempDirectory("bireus_");
-
-        Path tempFolderA = Files.createDirectory(tempDirectory.resolve("folderA"));
-        Path tempFolderB = Files.createDirectory(tempDirectory.resolve("folderB"));
-
-        ArchiveService.extractZip(folderA.resolve(file), tempFolderA);
-        ArchiveService.extractZip(folderB.resolve(file), tempFolderB);
-
-        List<File> folderAEntries = new ArrayList<>();
-        folderAEntries.addAll(FileUtils.listFiles(tempFolderA.toFile(), null, true));
-
-        List<File> folderBEntries = new ArrayList<>();
-        folderBEntries.addAll(FileUtils.listFiles(tempFolderB.toFile(), null, true));
-
-        try {
-            for (Iterator<File> it = folderAEntries.iterator(); it.hasNext(); ) {
-                File fileA = it.next();
-
-                Optional<File> fileB = folderBEntries.stream()
-                        .filter(possibleFileB -> Objects.equals(
-                                tempFolderB.relativize(possibleFileB.toPath()),
-                                tempFolderA.relativize(fileA.toPath())))
-                        .findFirst();
-
-                if (!fileB.isPresent()) {
-                    throw new AssertionError();
-                }
-
-                assertFileEquals(fileA.toPath(), fileB.get().toPath());
-            }
-        } finally {
-            FileUtils.deleteQuietly(tempDirectory.toFile());
-        }
-    }
 
     @Before
     public void setUp() throws Exception {
@@ -118,6 +70,25 @@ public class BireusClientTest {
         assertFileEquals(latestVersionPath, clientRepositoryPath, "changed.txt");
         assertFileEquals(latestVersionPath, clientRepositoryPath, "changed.zip");
         assertFileEquals(latestVersionPath, clientRepositoryPath, "unchanged.txt");
+    }
+
+    @Test
+    public void testCheckoutV1() throws Exception {
+        testGetFromURL();
+
+        downloadService.addDownloadAction((url, path) -> Files.copy(
+                TestPreparator.getServerRepositoryPath()
+                        .resolve(Repository.BIREUS_PATCHES_SUBFOLDER)
+                        .resolve(MessageFormat.format(Repository.BIREUS_PATCH_FILE_PATTERN, "v2", "v1")),
+                path));
+
+        instance.checkoutVersion("v1");
+
+        assertFileEquals(firstVersionPath, clientRepositoryPath, Paths.get("new_folder", "new_file.txt"));
+        assertFileEquals(firstVersionPath, clientRepositoryPath, "changed.txt");
+        assertFileEquals(firstVersionPath, clientRepositoryPath, "unchanged.txt");
+        assertZipFileEquals(firstVersionPath, clientRepositoryPath, Paths.get("zip_sub", "changed-subfolder.test"));
+        assertZipFileEquals(firstVersionPath, clientRepositoryPath, "changed.zip");
     }
 
     @Test(expected = BireusException.class)
@@ -168,4 +139,65 @@ public class BireusClientTest {
         assertZipFileEquals(latestVersionPath, clientRepositoryPath, Paths.get("zip_sub", "changed-subfolder.test"));
         assertZipFileEquals(latestVersionPath, clientRepositoryPath, "changed.zip");
     }
+
+    @Test
+    public void testCheckoutLatestVersion_EnforcedCrcMismatch() throws Exception {
+        clientRepositoryPath = TestPreparator.generateTemporaryClientRepositoryV1();
+
+        FileUtils.writeStringToFile(
+                clientRepositoryPath.resolve("changed.txt").toFile(),
+                "Enforce CrcMismatch",
+                "utf-8"
+        );
+
+        instance = new BireusClient(clientRepositoryPath, notificationService, downloadService);
+
+        downloadService.addReadAction(url -> Files.readAllBytes(TestPreparator.getServerRepositoryPath().resolve(Repository.BIREUS_INFO_FILE)));
+        downloadService.addDownloadAction((url, path) -> {
+            Path srcPath = TestPreparator.getServerRepositoryPath()
+                    .resolve(Repository.BIREUS_PATCHES_SUBFOLDER)
+                    .resolve(MessageFormat.format(Repository.BIREUS_PATCH_FILE_PATTERN, "v1", "v2"));
+            Files.createDirectories(path.getParent());
+            Files.copy(srcPath, path);
+        });
+
+        downloadService.addDownloadAction((url, path) -> {
+            if(!url.toString().endsWith("/changed.txt"))
+                throw new AssertionError("Download URL not correct");
+
+            Files.copy(TestPreparator.getServerRepositoryPath().resolve("v2/changed.txt"), path);
+        });
+
+
+        instance.checkoutLatestVersion();
+
+        assertFileEquals(latestVersionPath, clientRepositoryPath, Paths.get("new_folder", "new_file.txt"));
+        assertFileEquals(latestVersionPath, clientRepositoryPath, "changed.txt");
+        assertFileEquals(latestVersionPath, clientRepositoryPath, "unchanged.txt");
+        assertZipFileEquals(latestVersionPath, clientRepositoryPath, Paths.get("zip_sub", "changed-subfolder.test"));
+        assertZipFileEquals(latestVersionPath, clientRepositoryPath, "changed.zip");
+    }
+
+    @Test(expected = BireusException.class)
+    public void testLoadInvalidRepository() throws Exception {
+        clientRepositoryPath = Paths.get("not_existing_path");
+        instance = new BireusClient(clientRepositoryPath, notificationService, downloadService);
+    }
+
+    @Test(expected = BireusException.class)
+    public void testCheckoutNonexistantVersion() throws Exception {
+        clientRepositoryPath = TestPreparator.prepareDownloadForLatestClientRepository(downloadService);
+
+        downloadService.addReadAction(url -> Files.readAllBytes(TestPreparator.getServerRepositoryPath().resolve(Repository.BIREUS_INFO_FILE)));
+        downloadService.addDownloadAction((url, path) ->  {
+            throw new IOException("i.e. 404 not found");
+        });
+
+        instance = BireusClient.getFromURL(new URL("http://someurl"), clientRepositoryPath, notificationService, downloadService);
+
+        assertTrue(instance.checkVersionExists("v1"));
+        assertFalse(instance.checkVersionExists("non-existent-version"));
+        instance.checkoutVersion("non-existent-version");
+    }
+
 }

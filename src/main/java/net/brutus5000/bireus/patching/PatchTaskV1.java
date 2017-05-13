@@ -97,7 +97,7 @@ public class PatchTaskV1 extends PatchTask {
                     log.info("Emergency fallback: download {} from original source", basePath);
                     Repository repository = repositoryService.getRepository();
                     Files.delete(basePath);
-                    URL fileUrl = new URL(repository.getUrl() + "/" + targetVersion + "/" + basePath.relativize(repository.getAbsolutePath()).toUri().toURL());
+                    URL fileUrl = new URL(repository.getUrl() + "/" + targetVersion + "/" + repository.getAbsolutePath().relativize(basePath).toUri().toURL());
                     downloadService.download(fileUrl, basePath);
                 }
                 break;
