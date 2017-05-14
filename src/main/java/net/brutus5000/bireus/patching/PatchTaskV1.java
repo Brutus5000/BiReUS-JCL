@@ -1,8 +1,5 @@
 package net.brutus5000.bireus.patching;
 
-import org.apache.commons.compress.compressors.CompressorException;
-import org.apache.commons.io.FileUtils;
-
 import jbsdiff.InvalidHeaderException;
 import jbsdiff.Patch;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +7,8 @@ import lombok.val;
 import net.brutus5000.bireus.data.DiffItem;
 import net.brutus5000.bireus.data.Repository;
 import net.brutus5000.bireus.service.ArchiveService;
+import org.apache.commons.compress.compressors.CompressorException;
+import org.apache.commons.io.FileUtils;
 
 import java.io.IOException;
 import java.net.URL;
@@ -27,6 +26,13 @@ public class PatchTaskV1 extends PatchTask {
 
     @Override
     protected void patch(DiffItem diffItem, Path basePath, Path patchPath, boolean insideArchive) throws IOException {
+        /*
+          Important information on the way of updating:
+          The "new" or "patched" repository is created inside the patchPath, by replacing the bsdiff4 patches with the actual files.
+          This way the original repository is intact in case of an error.
+          After patching is finished, the patchPath contains the checked out version and needs to replace the original basePath.
+         */
+
         for (val item : diffItem.getItems()) {
             switch (item.getIoType()) {
                 case FILE:
@@ -51,21 +57,21 @@ public class PatchTaskV1 extends PatchTask {
         notificationService.beginPatchingFile(basePath);
         switch (item.getPatchAction()) {
             case ADD:
-                Files.deleteIfExists(basePath);
-                Files.copy(patchPath, basePath);
+                // do nothing: the new files are already in the patchPath
                 break;
             case REMOVE:
-                Files.delete(basePath);
+                // do nothing: the files don't exist in the patchPath
                 break;
             case ZIPDELTA:
                 patchArchiveFile(item, basePath, patchPath);
                 break;
             case BSDIFF:
-                String crcBeforePatching = "0x" + Long.toHexString(FileUtils.checksumCRC32(basePath.toFile()));
-
-                Path patchedPath = Paths.get(basePath + ".patched");
+                // apply the patch onto a temporary file and replace the file in patchPath
+                // if checksum does not fit, load file from server and save in patchPath
 
                 try {
+                    // check the original file before patching (in basePath)
+                    String crcBeforePatching = "0x" + Long.toHexString(FileUtils.checksumCRC32(basePath.toFile()));
                     if (!Objects.equals(item.getBaseCrc(), crcBeforePatching)) {
                         val exception = new CrcMismatchException(basePath, item.getBaseCrc(), crcBeforePatching);
                         log.error("CRC mismatch in unpatched base file `{}` (expected={}, actual={}), patching aborted", basePath, item.getBaseCrc(), crcBeforePatching, exception);
@@ -73,21 +79,24 @@ public class PatchTaskV1 extends PatchTask {
                         throw exception;
                     }
 
+                    Path patchedTempPath = Paths.get(patchPath + ".patched");
                     try {
-                        Patch.patch(basePath.toFile(), patchedPath.toFile(), patchPath.toFile());
+                        Patch.patch(basePath.toFile(), patchedTempPath.toFile(), patchPath.toFile());
                     } catch (CompressorException | InvalidHeaderException e) {
                         log.error("Error on applying bsdiff4", e);
                         throw new IOException(e);
                     }
 
-                    Files.delete(basePath);
-                    Files.move(patchedPath, basePath);
+                    // the .patched-file replaces the original bsdiff4 file
+                    Files.delete(patchPath);
+                    Files.move(patchedTempPath, patchPath);
 
-                    String crcAfterPatching = Long.toHexString(FileUtils.checksumCRC32(basePath.toFile()));
+                    // check the final file after patching (in patchPath)
+                    String crcAfterPatching = Long.toHexString(FileUtils.checksumCRC32(patchPath.toFile()));
                     if (!Objects.equals(item.getBaseCrc(), crcBeforePatching)) {
-                        val exception = new CrcMismatchException(basePath, item.getBaseCrc(), crcBeforePatching);
-                        log.error("CRC mismatch in patched base file `{}` (expected={}, actual={}), patching aborted", basePath, item.getBaseCrc(), crcBeforePatching, exception);
-                        notificationService.crcMismatch(basePath);
+                        val exception = new CrcMismatchException(patchPath, item.getBaseCrc(), crcBeforePatching);
+                        log.error("CRC mismatch in patched file `{}` (expected={}, actual={}), patching aborted", patchPath, item.getBaseCrc(), crcBeforePatching, exception);
+                        notificationService.crcMismatch(patchPath);
                         throw exception;
                     }
                 } catch (CrcMismatchException e) {
@@ -96,12 +105,14 @@ public class PatchTaskV1 extends PatchTask {
 
                     log.info("Emergency fallback: download {} from original source", basePath);
                     Repository repository = repositoryService.getRepository();
-                    Files.delete(basePath);
+                    Files.delete(patchPath);
                     URL fileUrl = new URL(repository.getUrl() + "/" + targetVersion + "/" + repository.getAbsolutePath().relativize(basePath).toUri().toURL());
-                    downloadService.download(fileUrl, basePath);
+                    downloadService.download(fileUrl, patchPath);
                 }
                 break;
             case UNCHANGED:
+                // since unchanged, there is no file in the patchPath, we need to copy it from the basePath
+                Files.copy(basePath, patchPath);
                 break;
             default:
                 log.error("Unexpected patch action `{}` on patching file", item.getPatchAction().toString());
@@ -115,11 +126,10 @@ public class PatchTaskV1 extends PatchTask {
         notificationService.beginPatchingDirectory(basePath);
         switch (item.getPatchAction()) {
             case ADD:
-                FileUtils.deleteQuietly(basePath.toFile());
-                FileUtils.copyDirectory(patchPath.toFile(), basePath.toFile());
+                // do nothing: the new files are already in the patchPath
                 break;
             case REMOVE:
-                FileUtils.deleteDirectory(basePath.toFile());
+                // do nothing: the files don't exist in the patchPath
                 break;
             case DELTA:
                 patch(item, basePath, patchPath, insideArchive);
@@ -131,17 +141,26 @@ public class PatchTaskV1 extends PatchTask {
     }
 
     private void patchArchiveFile(DiffItem item, Path basePath, Path patchPath) throws IOException {
+        // we need a temporary folder to extract the zip content from the base files
         Path temporaryFolder = createTemporaryFolder("extracted_" + patchPath.getFileName() + "_");
 
-        log.debug("Extracting files to `{}`", temporaryFolder);
         // extract the original files, attention: the patch files aren't zipped anymore
+        log.debug("Extracting files to `{}`", temporaryFolder);
         ArchiveService.extractZip(basePath, temporaryFolder);
 
+        // now we can start the patching
         patch(item, temporaryFolder, patchPath, true);
 
-        log.debug("Re-compressing files from `{}`", temporaryFolder);
-        ArchiveService.compressFolderToZip(temporaryFolder, basePath);
-
+        // the patched files are now in patchPath
+        // therefore we can remove the temporaryFolder
+        log.debug("Removing the temporary base folder {}", patchPath);
         FileUtils.deleteDirectory(temporaryFolder.toFile());
+
+        // patchPath is a folder with the patch files but is supposed to be the zip file,
+        // therefore we rename the folder for a second before compressing
+        log.debug("Re-compressing files at {}", patchPath);
+        Path intermediateFolder = Files.move(patchPath, Paths.get(patchPath + ".patched"));
+        ArchiveService.compressFolderToZip(intermediateFolder, patchPath);
+        FileUtils.deleteDirectory(intermediateFolder.toFile());
     }
 }

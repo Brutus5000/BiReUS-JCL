@@ -1,7 +1,6 @@
 package net.brutus5000.bireus.patching;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import net.brutus5000.bireus.data.DiffHead;
@@ -11,12 +10,14 @@ import net.brutus5000.bireus.service.ArchiveService;
 import net.brutus5000.bireus.service.DownloadService;
 import net.brutus5000.bireus.service.NotificationService;
 import net.brutus5000.bireus.service.RepositoryService;
+import org.apache.commons.io.FileUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.Objects;
+import java.util.UUID;
 
 @Slf4j
 public abstract class PatchTask {
@@ -65,10 +66,21 @@ public abstract class PatchTask {
             }
 
             DiffItem rootItem = diffHead.getItems().stream().findFirst().get();
-            patch(rootItem, repositoryService.getRepository().getAbsolutePath(), temporaryFolder);
+            Path repositoryPath = repositoryService.getRepository().getAbsolutePath();
+            patch(rootItem, repositoryPath, temporaryFolder);
+
+            Files.delete(temporaryFolder.resolve(Repository.BIREUS_INTERAL_FOLDER)); // remove the patch descriptor
+
+            // now, the temporary folder contains the checked out version that we want
+            Path intermediateFolder = repositoryPath.getParent().resolve(repositoryService.getRepository().getName() + "_" + UUID.randomUUID().toString());
+            Path relativeTemporaryFolder = repositoryPath.relativize(temporaryFolder);
+            Files.move(repositoryPath, intermediateFolder); // make place for the new repository folder
+            Files.move(intermediateFolder.resolve(relativeTemporaryFolder), repositoryPath); // make the temporaryFolder the new repository
+            Files.move(intermediateFolder.resolve(Repository.BIREUS_INTERAL_FOLDER), repositoryPath.resolve(Repository.BIREUS_INTERAL_FOLDER)); // restore the old internal files
+            FileUtils.deleteDirectory(intermediateFolder.toFile()); // get rid of the old repository version
         } finally {
             if (temporaryFolder != null) {
-                temporaryFolder.toFile().deleteOnExit();
+                FileUtils.deleteQuietly(temporaryFolder.toFile());
             }
         }
     }
