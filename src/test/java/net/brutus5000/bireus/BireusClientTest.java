@@ -58,6 +58,7 @@ public class BireusClientTest {
 
         assertTrue(Files.exists(clientRepositoryPath.resolve(Repository.BIREUS_INTERAL_FOLDER).resolve(Repository.BIREUS_INFO_FILE)));
         assertTrue(Files.exists(clientRepositoryPath.resolve(Repository.BIREUS_INTERAL_FOLDER).resolve(Repository.BIREUS_VERSIONS_FILE)));
+        assertFalse(Files.exists(clientRepositoryPath.resolve("removed_folder").resolve("obsolete.txt")));
         assertFileEquals(latestVersionPath, clientRepositoryPath, Paths.get("new_folder", "new_file.txt"));
         assertFileEquals(latestVersionPath, clientRepositoryPath, Paths.get("zip_sub", "changed-subfolder.test"));
         assertFileEquals(latestVersionPath, clientRepositoryPath, "changed.txt");
@@ -77,7 +78,8 @@ public class BireusClientTest {
 
         instance.checkoutVersion("v1");
 
-        assertFileEquals(firstVersionPath, clientRepositoryPath, Paths.get("new_folder", "new_file.txt"));
+        assertFalse(Files.exists(clientRepositoryPath.resolve("new_folder").resolve("new_file.txt")));
+        assertFileEquals(firstVersionPath, clientRepositoryPath, Paths.get("removed_folder", "obsolete.txt"));
         assertFileEquals(firstVersionPath, clientRepositoryPath, "changed.txt");
         assertFileEquals(firstVersionPath, clientRepositoryPath, "unchanged.txt");
         assertZipFileEquals(firstVersionPath, clientRepositoryPath, Paths.get("zip_sub", "changed-subfolder.test"));
@@ -100,6 +102,7 @@ public class BireusClientTest {
 
         instance.checkoutVersion("v2");
 
+        assertFalse(Files.exists(clientRepositoryPath.resolve("removed_folder").resolve("obsolete.txt")));
         assertFileEquals(latestVersionPath, clientRepositoryPath, Paths.get("new_folder", "new_file.txt"));
         assertFileEquals(latestVersionPath, clientRepositoryPath, "changed.txt");
         assertFileEquals(latestVersionPath, clientRepositoryPath, "unchanged.txt");
@@ -149,6 +152,7 @@ public class BireusClientTest {
 
         instance.checkoutLatestVersion();
 
+        assertFalse(Files.exists(clientRepositoryPath.resolve("removed_folder").resolve("obsolete.txt")));
         assertFileEquals(latestVersionPath, clientRepositoryPath, Paths.get("new_folder", "new_file.txt"));
         assertFileEquals(latestVersionPath, clientRepositoryPath, "changed.txt");
         assertFileEquals(latestVersionPath, clientRepositoryPath, "unchanged.txt");
@@ -187,6 +191,7 @@ public class BireusClientTest {
 
         instance.checkoutLatestVersion();
 
+        assertFalse(Files.exists(clientRepositoryPath.resolve("removed_folder").resolve("obsolete.txt")));
         assertFileEquals(latestVersionPath, clientRepositoryPath, Paths.get("new_folder", "new_file.txt"));
         assertFileEquals(latestVersionPath, clientRepositoryPath, "changed.txt");
         assertFileEquals(latestVersionPath, clientRepositoryPath, "unchanged.txt");
