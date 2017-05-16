@@ -153,7 +153,7 @@ public class PatchTaskV1 extends PatchTask {
 
         // the patched files are now in patchPath
         // therefore we can remove the temporaryFolder
-        log.debug("Removing the temporary base folder {}", patchPath);
+        log.debug("Removing the temporary folder {}", temporaryFolder);
         FileUtils.deleteDirectory(temporaryFolder.toFile());
 
         // patchPath is a folder with the patch files but is supposed to be the zip file,
