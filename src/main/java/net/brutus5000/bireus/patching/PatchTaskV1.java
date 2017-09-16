@@ -92,10 +92,10 @@ public class PatchTaskV1 extends PatchTask {
                     Files.move(patchedTempPath, patchPath);
 
                     // check the final file after patching (in patchPath)
-                    String crcAfterPatching = Long.toHexString(FileUtils.checksumCRC32(patchPath.toFile()));
-                    if (!Objects.equals(item.getBaseCrc(), crcBeforePatching)) {
-                        val exception = new CrcMismatchException(patchPath, item.getBaseCrc(), crcBeforePatching);
-                        log.error("CRC mismatch in patched file `{}` (expected={}, actual={}), patching aborted", patchPath, item.getBaseCrc(), crcBeforePatching, exception);
+                    String crcAfterPatching = "0x" + Long.toHexString(FileUtils.checksumCRC32(patchPath.toFile()));
+                    if (!Objects.equals(item.getTargetCrc(), crcAfterPatching)) {
+                        val exception = new CrcMismatchException(patchPath, item.getTargetCrc(), crcAfterPatching);
+                        log.error("CRC mismatch in patched file `{}` (expected={}, actual={}), patching aborted", patchPath, item.getTargetCrc(), crcAfterPatching, exception);
                         notificationService.crcMismatch(patchPath);
                         throw exception;
                     }
