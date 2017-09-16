@@ -1,7 +1,7 @@
 package net.brutus5000.bireus.patching;
 
-import jbsdiff.InvalidHeaderException;
-import jbsdiff.Patch;
+import io.sigpipe.jbsdiff.InvalidHeaderException;
+import io.sigpipe.jbsdiff.Patch;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import net.brutus5000.bireus.data.DiffItem;
