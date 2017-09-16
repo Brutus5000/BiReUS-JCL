@@ -9,13 +9,13 @@ import java.util.Collection;
 @Data
 public class DiffHead {
     @JsonProperty("repository")
-    String repository;
+    private String repository;
     @JsonProperty("protocol")
-    int protocol;
+    private int protocol;
     @JsonProperty("base_version")
-    String baseVersion;
+    private String baseVersion;
     @JsonProperty("target_version")
-    String targetVersion;
+    private String targetVersion;
     @JsonProperty("items")
-    Collection<DiffItem> items;
+    private Collection<DiffItem> items;
 }

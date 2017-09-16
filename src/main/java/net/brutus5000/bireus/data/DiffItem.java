@@ -9,15 +9,15 @@ import java.util.Collection;
 @Data
 public class DiffItem {
     @JsonProperty("name")
-    String name;
+    private String name;
     @JsonProperty("type")
-    IoType ioType;
+    private IoType ioType;
     @JsonProperty(value = "base_crc", required = false)
-    String baseCrc;
+    private String baseCrc;
     @JsonProperty(value = "target_crc", required = false)
-    String targetCrc;
+    private String targetCrc;
     @JsonProperty("action")
-    PatchAction patchAction;
+    private PatchAction patchAction;
     @JsonProperty("items")
-    Collection<DiffItem> items;
+    private Collection<DiffItem> items;
 }
