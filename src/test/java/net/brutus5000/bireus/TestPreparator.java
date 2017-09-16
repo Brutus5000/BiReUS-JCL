@@ -25,7 +25,7 @@ public class TestPreparator {
         ObjectMapper objectMapper = new ObjectMapper();
         Repository repository = objectMapper.readValue(sourcePath.resolveSibling(Repository.BIREUS_INFO_FILE).toFile(), Repository.class);
         repository.setCurrentVersion("v1");
-        repository.setUrl(new URL("file://" + getServerRepositoryPath().toString()));//new URL("http://localhost/BiReUS"));
+        repository.setUrl(new URL("file://" + getServerRepositoryPath()));
         objectMapper.writeValue(destPath.resolve(Repository.BIREUS_INTERAL_FOLDER).resolve(Repository.BIREUS_INFO_FILE).toFile(), repository);
 
         Files.copy(

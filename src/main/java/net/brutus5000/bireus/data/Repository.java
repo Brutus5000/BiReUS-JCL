@@ -50,7 +50,7 @@ public class Repository {
      */
     @SneakyThrows
     public URL getRemoteInfoURL() {
-        return new URL(url, BIREUS_INFO_FILE);
+        return new URL(url + BIREUS_INFO_FILE);
     }
 
     /**
@@ -67,7 +67,7 @@ public class Repository {
      */
     @SneakyThrows
     public URL getRemoteVersionGraphURL() {
-        return new URL(url, BIREUS_VERSIONS_FILE);
+        return new URL(url + BIREUS_VERSIONS_FILE);
     }
 
     /**
@@ -89,7 +89,7 @@ public class Repository {
      */
     @SneakyThrows
     public URL getRemotePatchURL(String fromVersion, String toVersion) {
-        return new URL(url, BIREUS_PATCHES_SUBFOLDER + "/" +
+        return new URL(url + BIREUS_PATCHES_SUBFOLDER + "/" +
                 MessageFormat.format(BIREUS_PATCH_FILE_PATTERN, fromVersion, toVersion));
     }
 }

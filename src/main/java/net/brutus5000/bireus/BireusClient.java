@@ -39,7 +39,7 @@ public class BireusClient {
                 throw new BireusException(message, null);
             }
 
-            URL infoJsonURL = new URL(url, "/" + Repository.BIREUS_INFO_FILE);
+            URL infoJsonURL = new URL(url + "/" + Repository.BIREUS_INFO_FILE);
             Files.createDirectories(path.resolve(Repository.BIREUS_INTERAL_FOLDER));
             log.debug("Read {} from {}", Repository.BIREUS_INFO_FILE, infoJsonURL);
             byte[] infoJsonBytes = downloadService.read(infoJsonURL);
@@ -56,13 +56,13 @@ public class BireusClient {
                     .resolve(Repository.BIREUS_INFO_FILE)
                     .toFile(), repository);
 
-            URL versionGmlURL = new URL(url, "/" + Repository.BIREUS_VERSIONS_FILE);
+            URL versionGmlURL = new URL(url + "/" + Repository.BIREUS_VERSIONS_FILE);
             log.debug("Read {} from {}", Repository.BIREUS_VERSIONS_FILE, versionGmlURL);
             downloadService.download(versionGmlURL, path
                     .resolve(Repository.BIREUS_INTERAL_FOLDER)
                     .resolve(Repository.BIREUS_VERSIONS_FILE));
 
-            URL latestVersionURL = new URL(url, "/" + Repository.BIREUS_LATEST_VERSION_ARCHIVE);
+            URL latestVersionURL = new URL(url + "/" + Repository.BIREUS_LATEST_VERSION_ARCHIVE);
             log.debug("Download latest version from {}", latestVersionURL);
             Path temporaryDirectory = Files.createTempDirectory("bireus_");
             downloadService.download(latestVersionURL, temporaryDirectory.resolve(Repository.BIREUS_LATEST_VERSION_ARCHIVE));
