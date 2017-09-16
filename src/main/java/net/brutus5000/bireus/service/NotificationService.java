@@ -7,35 +7,51 @@ import java.net.URL;
 import java.nio.file.Path;
 
 public interface NotificationService {
-    void error(String message);
+    default void error(String message) {
+    }
 
-    void beginCheckoutVersion(String version);
+    default void beginCheckoutVersion(String version) {
+    }
 
-    void finishCheckoutVersion(String version);
+    default void finishCheckoutVersion(String version) {
+    }
 
-    void checkedOutAlready(String version);
+    default void checkedOutAlready(String version) {
+    }
 
-    void versionUnknown(String version);
+    default void versionUnknown(String version) {
+    }
 
-    void noPatchPath(String version);
+    default void noPatchPath(String version) {
+    }
 
-    void beginApplyPatch(String fromVersion, String toVersion);
+    default void beginApplyPatch(String fromVersion, String toVersion) {
+    }
 
-    void finishApplyPatch(String fromVersion, String toVersion);
+    default void finishApplyPatch(String fromVersion, String toVersion) {
+    }
 
-    void beginDownloadPatch(URL url);
+    default void beginDownloadPatch(URL url) {
+    }
 
-    void finishDownloadPatch(URL url);
+    default void finishDownloadPatch(URL url) {
+    }
 
-    void beginPatchingDirectory(Path path);
+    default void beginPatchingDirectory(Path path) {
+    }
 
-    void finishPatchingDirectory(Path path);
+    default void finishPatchingDirectory(Path path) {
+    }
 
-    void beginPatchingFile(Path path);
+    default void beginPatchingFile(Path path) {
+    }
 
-    void finishPatchingFile(Path path);
+    default void finishPatchingFile(Path path) {
+    }
 
-    void foundPatchPath(GraphPath<String, DefaultEdge> patchPath);
+    default void foundPatchPath(GraphPath<String, DefaultEdge> patchPath) {
+    }
 
-    void crcMismatch(Path patchPath);
+    default void crcMismatch(Path patchPath) {
+    }
 }
