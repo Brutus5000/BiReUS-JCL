@@ -190,11 +190,11 @@ public class RepositoryService {
             repository.setLatestVersion(newRepository.getLatestVersion());
 
             log.trace("Delete and rewrite {}", Repository.BIREUS_INFO_FILE);
-            repository.getInfoPath().toFile().delete();
+            Files.delete(repository.getInfoPath());
             objectMapper.writeValue(repository.getInfoPath().toFile(), repository);
 
             log.trace("Delete and rewrite {}", Repository.BIREUS_VERSIONS_FILE);
-            repository.getVersionGraphPath().toFile().delete();
+            Files.delete(repository.getVersionGraphPath());
             downloadService.download(repository.getRemoteInfoURL(), repository.getVersionGraphPath());
         } else {
             log.debug("Local repository info is up to date");
