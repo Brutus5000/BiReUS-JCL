@@ -4,12 +4,13 @@ import net.brutus5000.bireus.service.ArchiveService;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.tukaani.xz.XZFormatException;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.zip.ZipException;
@@ -18,15 +19,18 @@ import static net.brutus5000.bireus.TestUtil.assertFileEquals;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ArchiveServiceTest {
-    private Path archiveData;
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     private Path tempDirectory;
+    private Path archiveData;
     private Path rawData;
 
     @Before
     public void setup() throws Exception {
         archiveData = Paths.get("src/test/resources/archive-data/");
         rawData = archiveData.resolve("raw");
-        tempDirectory = Files.createTempDirectory("BiReUS-JUnit_");
+        tempDirectory = temporaryFolder.getRoot().toPath();
     }
 
     @After
