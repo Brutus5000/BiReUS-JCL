@@ -4,7 +4,7 @@ package net.brutus5000.bireus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.brutus5000.bireus.data.Repository;
 import net.brutus5000.bireus.mocks.DownloadServiceMock;
-import net.brutus5000.bireus.service.NotificationService;
+import net.brutus5000.bireus.service.PatchEventListener;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -29,7 +29,7 @@ import static net.brutus5000.bireus.TestUtil.assertZipFileEquals;
 public class BireusClientTest {
 
     @Mock
-    private NotificationService notificationService;
+    private PatchEventListener patchEventListener;
     private DownloadServiceMock downloadService;
     private BireusClient instance;
     private Path clientRepositoryPath;
@@ -53,7 +53,7 @@ public class BireusClientTest {
     public void testGetFromURL() throws Exception {
         clientRepositoryPath = TestPreparator.prepareDownloadForLatestClientRepository(downloadService);
 
-        instance = BireusClient.getFromURL(new URL("http://someurl"), clientRepositoryPath, notificationService, downloadService);
+        instance = BireusClient.getFromURL(new URL("http://someurl"), clientRepositoryPath, patchEventListener, downloadService);
 
         assertTrue(Files.exists(clientRepositoryPath.resolve(Repository.BIREUS_INTERAL_FOLDER).resolve(Repository.BIREUS_INFO_FILE)));
         assertTrue(Files.exists(clientRepositoryPath.resolve(Repository.BIREUS_INTERAL_FOLDER).resolve(Repository.BIREUS_VERSIONS_FILE)));
@@ -113,7 +113,7 @@ public class BireusClientTest {
     public void testGetFromURL_InvalidPath() throws Exception {
         clientRepositoryPath = TestPreparator.prepareDownloadForLatestClientRepository(downloadService);
 
-        instance = BireusClient.getFromURL(new URL("http://someurl"), clientRepositoryPath.resolve("dummy-path"), notificationService, downloadService);
+        instance = BireusClient.getFromURL(new URL("http://someurl"), clientRepositoryPath.resolve("dummy-path"), patchEventListener, downloadService);
     }
 
     @Test(expected = BireusException.class)
@@ -121,7 +121,7 @@ public class BireusClientTest {
         clientRepositoryPath = TestPreparator.prepareDownloadForLatestClientRepository(downloadService);
         Files.createFile(clientRepositoryPath.resolve("dummy-file"));
 
-        instance = BireusClient.getFromURL(new URL("http://someurl"), clientRepositoryPath, notificationService, downloadService);
+        instance = BireusClient.getFromURL(new URL("http://someurl"), clientRepositoryPath, patchEventListener, downloadService);
     }
 
     @Test(expected = BireusException.class)
@@ -132,13 +132,13 @@ public class BireusClientTest {
             throw new IOException("i.e. 404 not found");
         });
 
-        instance = BireusClient.getFromURL(new URL("http://someurl"), clientRepositoryPath, notificationService, downloadService);
+        instance = BireusClient.getFromURL(new URL("http://someurl"), clientRepositoryPath, patchEventListener, downloadService);
     }
 
     @Test
     public void testCheckoutLatestVersion() throws Exception {
         clientRepositoryPath = TestPreparator.generateTemporaryClientRepositoryV1();
-        instance = new BireusClient(clientRepositoryPath, notificationService, downloadService);
+        instance = new BireusClient(clientRepositoryPath, patchEventListener, downloadService);
 
         downloadService.addReadAction(url -> Files.readAllBytes(TestPreparator.getServerRepositoryPath().resolve(Repository.BIREUS_INFO_FILE)));
         downloadService.addDownloadAction((url, path) -> {
@@ -169,7 +169,7 @@ public class BireusClientTest {
                 "utf-8"
         );
 
-        instance = new BireusClient(clientRepositoryPath, notificationService, downloadService);
+        instance = new BireusClient(clientRepositoryPath, patchEventListener, downloadService);
 
         downloadService.addReadAction(url -> Files.readAllBytes(TestPreparator.getServerRepositoryPath().resolve(Repository.BIREUS_INFO_FILE)));
         downloadService.addDownloadAction((url, path) -> {
@@ -201,7 +201,7 @@ public class BireusClientTest {
     @Test(expected = BireusException.class)
     public void testLoadInvalidRepository() throws Exception {
         clientRepositoryPath = Paths.get("not_existing_path");
-        instance = new BireusClient(clientRepositoryPath, notificationService, downloadService);
+        instance = new BireusClient(clientRepositoryPath, patchEventListener, downloadService);
     }
 
     @Test(expected = BireusException.class)
@@ -213,7 +213,7 @@ public class BireusClientTest {
             throw new IOException("i.e. 404 not found");
         });
 
-        instance = BireusClient.getFromURL(new URL("http://someurl"), clientRepositoryPath, notificationService, downloadService);
+        instance = BireusClient.getFromURL(new URL("http://someurl"), clientRepositoryPath, patchEventListener, downloadService);
 
         assertTrue(instance.checkVersionExists("v1"));
         assertFalse(instance.checkVersionExists("non-existent-version"));
@@ -230,6 +230,6 @@ public class BireusClientTest {
         repository.setProtocolVersion(999);
         objectMapper.writeValue(infoFile.toFile(), repository);
 
-        instance = BireusClient.getFromURL(new URL("http://someurl"), clientRepositoryPath, notificationService, downloadService);
+        instance = BireusClient.getFromURL(new URL("http://someurl"), clientRepositoryPath, patchEventListener, downloadService);
     }
 }

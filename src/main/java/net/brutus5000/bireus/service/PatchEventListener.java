@@ -6,7 +6,7 @@ import org.jgrapht.graph.DefaultEdge;
 import java.net.URL;
 import java.nio.file.Path;
 
-public interface NotificationService {
+public interface PatchEventListener {
     default void error(String message) {
     }
 

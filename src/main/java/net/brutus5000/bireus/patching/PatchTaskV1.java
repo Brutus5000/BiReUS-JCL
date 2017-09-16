@@ -54,7 +54,7 @@ public class PatchTaskV1 extends PatchTask {
     private void patchFile(DiffItem item, Path basePath, Path patchPath, boolean insideArchive) throws IOException {
         log.debug("Patching file (action=`{}`, file=`{}`, relative path=`{}`)", item.getPatchAction(), item.getName(), patchPath.getFileName());
 
-        notificationService.beginPatchingFile(basePath);
+        patchEventListener.beginPatchingFile(basePath);
         switch (item.getPatchAction()) {
             case ADD:
                 // do nothing: the new files are already in the patchPath
@@ -75,7 +75,7 @@ public class PatchTaskV1 extends PatchTask {
                     if (!Objects.equals(item.getBaseCrc(), crcBeforePatching)) {
                         val exception = new CrcMismatchException(basePath, item.getBaseCrc(), crcBeforePatching);
                         log.error("CRC mismatch in unpatched base file `{}` (expected={}, actual={}), patching aborted", basePath, item.getBaseCrc(), crcBeforePatching, exception);
-                        notificationService.crcMismatch(basePath);
+                        patchEventListener.crcMismatch(basePath);
                         throw exception;
                     }
 
@@ -96,7 +96,7 @@ public class PatchTaskV1 extends PatchTask {
                     if (!Objects.equals(item.getTargetCrc(), crcAfterPatching)) {
                         val exception = new CrcMismatchException(patchPath, item.getTargetCrc(), crcAfterPatching);
                         log.error("CRC mismatch in patched file `{}` (expected={}, actual={}), patching aborted", patchPath, item.getTargetCrc(), crcAfterPatching, exception);
-                        notificationService.crcMismatch(patchPath);
+                        patchEventListener.crcMismatch(patchPath);
                         throw exception;
                     }
                 } catch (CrcMismatchException e) {
@@ -117,13 +117,13 @@ public class PatchTaskV1 extends PatchTask {
             default:
                 log.error("Unexpected patch action `{}` on patching file", item.getPatchAction().toString());
         }
-        notificationService.finishPatchingFile(basePath);
+        patchEventListener.finishPatchingFile(basePath);
     }
 
     private void patchDirectory(DiffItem item, Path basePath, Path patchPath, boolean insideArchive) throws IOException {
         log.debug("Patching directory (action=`{}`, folder=`{}`, path=`{}`)", item.getPatchAction(), item.getName(), basePath.getFileName());
 
-        notificationService.beginPatchingDirectory(basePath);
+        patchEventListener.beginPatchingDirectory(basePath);
         switch (item.getPatchAction()) {
             case ADD:
                 // do nothing: the new files are already in the patchPath
@@ -137,7 +137,7 @@ public class PatchTaskV1 extends PatchTask {
             default:
                 log.error("Unexpected patch action `{}` on patching directory", item.getPatchAction());
         }
-        notificationService.finishPatchingDirectory(basePath);
+        patchEventListener.finishPatchingDirectory(basePath);
     }
 
     private void patchArchiveFile(DiffItem item, Path basePath, Path patchPath) throws IOException {

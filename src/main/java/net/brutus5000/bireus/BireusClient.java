@@ -17,17 +17,17 @@ import java.text.MessageFormat;
 public class BireusClient {
     private final RepositoryService repositoryService;
 
-    public BireusClient(Path repositoryPath, NotificationService notificationService, DownloadService downloadService) throws BireusException {
+    public BireusClient(Path repositoryPath, PatchEventListener patchEventListener, DownloadService downloadService) throws BireusException {
         try {
             repositoryService = new RepositoryService(repositoryPath);
-            repositoryService.setNotificationService(notificationService);
+            repositoryService.setPatchEventListener(patchEventListener);
             repositoryService.setDownloadService(downloadService);
         } catch (IOException | ImportException e) {
             throw new BireusException("Error on initializing BiReUS repository", e);
         }
     }
 
-    public static BireusClient getFromURL(URL url, Path path, NotificationService notificationService, DownloadService downloadService) throws BireusException {
+    public static BireusClient getFromURL(URL url, Path path, PatchEventListener patchEventListener, DownloadService downloadService) throws BireusException {
         try {
             if (!Files.isDirectory(path)) {
                 String message = MessageFormat.format("Path {0} is not a directory", path);
@@ -73,7 +73,7 @@ public class BireusClient {
 
             ArchiveService.extractTarXz(temporaryDirectory.resolve(Repository.BIREUS_LATEST_VERSION_ARCHIVE), path);
             FileUtils.deleteDirectory(temporaryDirectory.toFile());
-            return new BireusClient(path, notificationService, downloadService);
+            return new BireusClient(path, patchEventListener, downloadService);
         } catch (IOException e) {
             log.error("Error while loading repository from URL {}", url, e);
             FileUtils.deleteQuietly(path.toFile());

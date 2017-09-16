@@ -28,7 +28,7 @@ import java.util.Objects;
 @Slf4j
 public class RepositoryService {
     private final ObjectMapper objectMapper = new ObjectMapper();
-    NotificationService notificationService;
+    PatchEventListener patchEventListener;
     DownloadService downloadService;
 
     Repository repository;
@@ -82,21 +82,21 @@ public class RepositoryService {
 
     public void checkout(String version) throws CheckoutException {
         Objects.requireNonNull(downloadService);
-        Objects.requireNonNull(notificationService);
+        Objects.requireNonNull(patchEventListener);
 
         log.info("Checking out version `{}` from repository `{}`", version, repository.getName());
-        notificationService.beginCheckoutVersion(version);
+        patchEventListener.beginCheckoutVersion(version);
 
         String currentVersion = repository.getCurrentVersion();
         if (currentVersion.equals(version)) {
             log.info("Version `{}` is already checked out", version);
-            notificationService.checkedOutAlready(version);
+            patchEventListener.checkedOutAlready(version);
             return;
         }
 
         if (!checkVersionExists(version)) {
             log.error("Version `{}` is not listed on the server", version);
-            notificationService.versionUnknown(version);
+            patchEventListener.versionUnknown(version);
             throw new CheckoutException(MessageFormat.format("Version `{0}` is not listed on the server", version), repository, version);
         }
 
@@ -105,17 +105,17 @@ public class RepositoryService {
 
         if (patchPath == null) {
             log.error("No valid patch path from `{}` to `{}`", currentVersion, version);
-            notificationService.noPatchPath(version);
+            patchEventListener.noPatchPath(version);
             throw new CheckoutException(MessageFormat.format("No valid patch path from `{0}` to `{1}`", currentVersion, version), repository, version);
         }
 
         log.debug("Patch path found: {}", patchPath);
-        notificationService.foundPatchPath(patchPath);
+        patchEventListener.foundPatchPath(patchPath);
 
         applyPatchPath(patchPath);
 
         log.info("Version `{}` is now checked out", version);
-        notificationService.finishCheckoutVersion(version);
+        patchEventListener.finishCheckoutVersion(version);
     }
 
     private void applyPatchPath(GraphPath<String, DefaultEdge> patchPath) throws CheckoutException {
@@ -156,13 +156,13 @@ public class RepositoryService {
 
     private void applyPatch(String versionFrom, String versionTo) throws IOException {
         log.debug("Applying patch (from=`{}`, to=`{}`)", versionFrom, versionTo);
-        notificationService.beginApplyPatch(versionFrom, versionTo);
+        patchEventListener.beginApplyPatch(versionFrom, versionTo);
 
         val patchTask = PatchTaskFactory.getInstance().create(repository.getProtocolVersion());
-        patchTask.run(this, notificationService, downloadService, repository.getPatchPath(versionFrom, versionTo));
+        patchTask.run(this, patchEventListener, downloadService, repository.getPatchPath(versionFrom, versionTo));
 
         log.debug("Patch applied");
-        notificationService.finishApplyPatch(versionFrom, versionTo);
+        patchEventListener.finishApplyPatch(versionFrom, versionTo);
     }
 
     private void downloadPatch(String versionFrom, String versionTo) throws IOException {
@@ -170,12 +170,12 @@ public class RepositoryService {
         val patchPath = repository.getPatchPath(versionFrom, versionTo);
 
         try {
-            notificationService.beginDownloadPatch(url);
+            patchEventListener.beginDownloadPatch(url);
             Files.createDirectories(patchPath.getParent());
             downloadService.download(url, patchPath);
-            notificationService.finishDownloadPatch(url);
+            patchEventListener.finishDownloadPatch(url);
         } catch (IOException e) {
-            notificationService.error(MessageFormat.format("Downloading patch-file failed from `{0}`", url));
+            patchEventListener.error(MessageFormat.format("Downloading patch-file failed from `{0}`", url));
             log.error("Downloading patch-file failed from `{}`", url, e);
             throw e;
         }

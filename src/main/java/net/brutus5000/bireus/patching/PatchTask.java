@@ -8,7 +8,7 @@ import net.brutus5000.bireus.data.DiffItem;
 import net.brutus5000.bireus.data.Repository;
 import net.brutus5000.bireus.service.ArchiveService;
 import net.brutus5000.bireus.service.DownloadService;
-import net.brutus5000.bireus.service.NotificationService;
+import net.brutus5000.bireus.service.PatchEventListener;
 import net.brutus5000.bireus.service.RepositoryService;
 import org.apache.commons.io.FileUtils;
 
@@ -22,18 +22,18 @@ import java.util.UUID;
 @Slf4j
 public abstract class PatchTask {
     protected RepositoryService repositoryService;
-    protected NotificationService notificationService;
+    protected PatchEventListener patchEventListener;
     protected DownloadService downloadService;
 
     protected String targetVersion;
 
     public abstract int getVersion();
 
-    public void run(RepositoryService repositoryService, NotificationService notificationService, DownloadService downloadService, Path patchFile) throws IOException {
+    public void run(RepositoryService repositoryService, PatchEventListener patchEventListener, DownloadService downloadService, Path patchFile) throws IOException {
         log.debug("Started PatchTask run using {} (protocolVersion=`{}`)", getClass().getCanonicalName(), getVersion());
 
         this.repositoryService = repositoryService;
-        this.notificationService = notificationService;
+        this.patchEventListener = patchEventListener;
         this.downloadService = downloadService;
 
         Path temporaryFolder = null;
@@ -55,13 +55,13 @@ public abstract class PatchTask {
             if (!Objects.equals(diffHead.getProtocol(), this.getVersion())) {
                 val message = MessageFormat.format("bireus protocol version `{0}` doesn't match patcher task version `{1}`",
                         diffHead.getProtocol(), this.getVersion());
-                notificationService.error(message);
+                patchEventListener.error(message);
                 throw new IOException(message);
             }
 
             if (diffHead.getItems().size() != 1) {
                 val message = "Invalid bireus file - the head is allowed to have one item only";
-                notificationService.error(message);
+                patchEventListener.error(message);
                 throw new IOException(message);
             }
 
