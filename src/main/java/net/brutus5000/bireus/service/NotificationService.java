@@ -35,18 +35,6 @@ public interface NotificationService {
 
     void finishPatchingFile(Path path);
 
-    void beginAddingFile(Path path);
-
-    void finishAddingFile(Path path);
-
-    void beginRemovingFile(Path path);
-
-    void finishRemovingFile(Path path);
-
-    void beginPatchingArchive(Path path);
-
-    void finishPatchingArchive(Path path);
-
     void foundPatchPath(GraphPath<String, DefaultEdge> patchPath);
 
     void crcMismatch(Path patchPath);

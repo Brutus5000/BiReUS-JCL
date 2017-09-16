@@ -122,7 +122,7 @@ public class RepositoryService {
 
     private void applyPatchPath(GraphPath<String, DefaultEdge> patchPath) throws CheckoutException {
         String versionFrom = patchPath.getStartVertex();
-        String versionTo = null;
+        String versionTo;
 
         for (String intermediateVersion : patchPath.getVertexList()) {
             if (!Objects.equals(versionFrom, intermediateVersion)) {
