@@ -13,7 +13,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -225,11 +224,11 @@ public class BireusClientTest {
     public void testProtocolException() throws Exception {
         clientRepositoryPath = TestPreparator.generateTemporaryClientRepositoryV1();
 
-        File infoFile = clientRepositoryPath.resolve(Repository.BIREUS_INTERAL_FOLDER).resolve(Repository.BIREUS_INFO_FILE).toFile();
+        Path infoFile = clientRepositoryPath.resolve(Repository.BIREUS_INTERAL_FOLDER).resolve(Repository.BIREUS_INFO_FILE);
         ObjectMapper objectMapper = new ObjectMapper();
-        Repository repository = objectMapper.readValue(infoFile, Repository.class);
+        Repository repository = objectMapper.readValue(infoFile.toFile(), Repository.class);
         repository.setProtocolVersion(999);
-        objectMapper.writeValue(infoFile, repository);
+        objectMapper.writeValue(infoFile.toFile(), repository);
 
         instance = BireusClient.getFromURL(new URL("http://someurl"), clientRepositoryPath, notificationService, downloadService);
     }
