@@ -1,11 +1,9 @@
 package net.brutus5000.bireus;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.apache.commons.io.FileUtils;
-
 import net.brutus5000.bireus.data.Repository;
 import net.brutus5000.bireus.mocks.DownloadServiceMock;
+import org.apache.commons.io.FileUtils;
 
 import java.io.IOException;
 import java.net.URL;
@@ -22,7 +20,7 @@ public class TestPreparator {
 
         FileUtils.copyDirectory(sourcePath.toFile(), destPath.toFile());
 
-        destPath.resolve(Repository.BIREUS_INTERAL_FOLDER).toFile().mkdir();
+        Files.createDirectory(destPath.resolve(Repository.BIREUS_INTERAL_FOLDER));
 
         ObjectMapper objectMapper = new ObjectMapper();
         Repository repository = objectMapper.readValue(sourcePath.resolveSibling(Repository.BIREUS_INFO_FILE).toFile(), Repository.class);

@@ -7,7 +7,7 @@ import java.net.URL;
 
 @Getter
 public class DownloadException extends IOException {
-    final URL url;
+    private final URL url;
 
     public DownloadException(Throwable cause, URL url) {
         super(cause);

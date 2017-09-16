@@ -8,13 +8,14 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.NoSuchElementException;
 
 /**
  * A simple DownloadService mock, where you can add all actions to a queue
  */
 public class DownloadServiceMock implements DownloadService {
-    Deque<ReadAction> readActions = new ArrayDeque<>();
-    Deque<DownloadAction> downloadActions = new ArrayDeque<>();
+    private Deque<ReadAction> readActions = new ArrayDeque<>();
+    private Deque<DownloadAction> downloadActions = new ArrayDeque<>();
 
     public void addDownloadAction(DownloadAction action) {
         downloadActions.add(action);
@@ -38,7 +39,7 @@ public class DownloadServiceMock implements DownloadService {
 
         try {
             return readActions.removeFirst().read(url);
-        } catch (IOException e) {
+        } catch (NoSuchElementException | IOException e) {
             throw new DownloadException(e, url);
         }
     }

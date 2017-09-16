@@ -4,29 +4,32 @@ import net.brutus5000.bireus.service.ArchiveService;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.tukaani.xz.XZFormatException;
 
-import java.nio.file.Files;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.zip.ZipException;
 
 import static net.brutus5000.bireus.TestUtil.assertFileEquals;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ArchiveServiceTest {
-    Path archiveData;
-    Path tempDirectory;
-    Path rawData;
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    private Path tempDirectory;
+    private Path archiveData;
+    private Path rawData;
 
     @Before
     public void setup() throws Exception {
         archiveData = Paths.get("src/test/resources/archive-data/");
         rawData = archiveData.resolve("raw");
-        tempDirectory = Files.createTempDirectory("BiReUS-JUnit_");
+        tempDirectory = temporaryFolder.getRoot().toPath();
     }
 
     @After
@@ -45,7 +48,7 @@ public class ArchiveServiceTest {
         assertFileEquals(tempDirectory, rawData, Paths.get("sub", "subfolder-file.txt"));
     }
 
-    @Test(expected = ZipException.class)
+    @Test(expected = IOException.class)
     public void testExtractZip_WrongFormat() throws Exception {
         Path testArchive = archiveData.resolve("tar_xz/test.tar.xz");
 
@@ -78,7 +81,7 @@ public class ArchiveServiceTest {
         assertFileEquals(tempDirectory, rawData, Paths.get("sub", "subfolder-file.txt"));
     }
 
-    @Test(expected = XZFormatException.class)
+    @Test(expected = IOException.class)
     public void testExtractTarXz_WrongFileType() throws Exception {
         Path testArchive = archiveData.resolve("zip/test.zip");
 

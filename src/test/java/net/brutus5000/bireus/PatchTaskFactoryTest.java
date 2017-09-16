@@ -1,16 +1,15 @@
 package net.brutus5000.bireus;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import net.brutus5000.bireus.patching.PatchTask;
 import net.brutus5000.bireus.patching.PatchTaskFactory;
 import net.brutus5000.bireus.patching.PatchTaskV1;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class PatchTaskFactoryTest {
-    PatchTaskFactory instance;
+    private PatchTaskFactory instance;
 
     @Before
     public void setUp() throws Exception {

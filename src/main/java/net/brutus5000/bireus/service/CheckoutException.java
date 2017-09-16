@@ -5,8 +5,8 @@ import net.brutus5000.bireus.data.Repository;
 
 @Getter
 public class CheckoutException extends Exception {
-    final Repository repository;
-    final String targetVersion;
+    private final Repository repository;
+    private final String targetVersion;
 
     public CheckoutException(String reason, Repository repository, String targetVersion, Throwable cause) {
         super(reason, cause);
