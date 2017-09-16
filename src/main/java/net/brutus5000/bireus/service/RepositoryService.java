@@ -10,7 +10,6 @@ import net.brutus5000.bireus.patching.PatchTaskFactory;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.BidirectionalDijkstraShortestPath;
-import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DirectedWeightedPseudograph;
 import org.jgrapht.io.EdgeProvider;
 import org.jgrapht.io.GmlImporter;
@@ -32,7 +31,9 @@ public class RepositoryService {
     DownloadService downloadService;
 
     Repository repository;
-    Graph<String, DefaultEdge> versionGraph;
+
+    /** Graph of ${code filename of patch file} to ${version name}. */
+    Graph<String, String> versionGraph;
 
     public RepositoryService(Path absolutePath) throws IOException, ImportException {
         log.debug("Creating repository service for path `{}`", absolutePath);
@@ -46,10 +47,9 @@ public class RepositoryService {
         VertexProvider<String> vertexProvider = (label, attributes) -> attributes.get("label");
         EdgeProvider<String, String> edgeProvider = (from, to, label, attributes) -> String.format("%s_to_%s", from, to);
 
-        val gmlImporter = new GmlImporter(vertexProvider, edgeProvider);
+        GmlImporter<String, String> gmlImporter = new GmlImporter<>(vertexProvider, edgeProvider);
 
-        versionGraph = new DirectedWeightedPseudograph<>(DefaultEdge.class);
-
+        versionGraph = new DirectedWeightedPseudograph<>(String.class);
 
         gmlImporter.importGraph(versionGraph, repository.getVersionGraphPath().toFile());
 
@@ -99,8 +99,8 @@ public class RepositoryService {
             throw new CheckoutException(MessageFormat.format("Version `{0}` is not listed on the server", version), repository, version);
         }
 
-        val shortestPathAlgorithm = new BidirectionalDijkstraShortestPath<String, DefaultEdge>(versionGraph);
-        val patchPath = shortestPathAlgorithm.getPath(currentVersion, version);
+        BidirectionalDijkstraShortestPath<String, String> shortestPathAlgorithm = new BidirectionalDijkstraShortestPath<>(versionGraph);
+        GraphPath<String, String> patchPath = shortestPathAlgorithm.getPath(currentVersion, version);
 
         if (patchPath == null) {
             log.error("No valid patch path from `{}` to `{}`", currentVersion, version);
@@ -117,7 +117,7 @@ public class RepositoryService {
         patchEventListener.finishCheckoutVersion(version);
     }
 
-    private void applyPatchPath(GraphPath<String, DefaultEdge> patchPath) throws CheckoutException {
+    private void applyPatchPath(GraphPath<String, String> patchPath) throws CheckoutException {
         String versionFrom = patchPath.getStartVertex();
         String versionTo;
 

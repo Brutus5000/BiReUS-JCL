@@ -1,7 +1,6 @@
 package net.brutus5000.bireus.service;
 
 import org.jgrapht.GraphPath;
-import org.jgrapht.graph.DefaultEdge;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -49,7 +48,7 @@ public interface PatchEventListener {
     default void finishPatchingFile(Path path) {
     }
 
-    default void foundPatchPath(GraphPath<String, DefaultEdge> patchPath) {
+    default void foundPatchPath(GraphPath<String, String> patchPath) {
     }
 
     default void crcMismatch(Path patchPath) {
