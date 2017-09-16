@@ -1,7 +1,12 @@
 package net.brutus5000.bireus.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
+import net.brutus5000.bireus.data.Repository;
+import net.brutus5000.bireus.patching.PatchTaskFactory;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.BidirectionalDijkstraShortestPath;
@@ -11,13 +16,6 @@ import org.jgrapht.io.EdgeProvider;
 import org.jgrapht.io.GmlImporter;
 import org.jgrapht.io.ImportException;
 import org.jgrapht.io.VertexProvider;
-
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import lombok.val;
-import net.brutus5000.bireus.data.Repository;
-import net.brutus5000.bireus.patching.PatchTaskFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -83,8 +81,8 @@ public class RepositoryService {
     }
 
     public void checkout(String version) throws CheckoutException {
-         Objects.requireNonNull(downloadService);
-         Objects.requireNonNull(notificationService);
+        Objects.requireNonNull(downloadService);
+        Objects.requireNonNull(notificationService);
 
         log.info("Checking out version `{}` from repository `{}`", version, repository.getName());
         notificationService.beginCheckoutVersion(version);
