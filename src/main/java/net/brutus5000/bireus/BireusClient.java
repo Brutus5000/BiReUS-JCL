@@ -1,17 +1,11 @@
 package net.brutus5000.bireus;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.apache.commons.io.FileUtils;
-import org.jgrapht.io.ImportException;
-
 import lombok.extern.slf4j.Slf4j;
 import net.brutus5000.bireus.data.Repository;
-import net.brutus5000.bireus.service.ArchiveService;
-import net.brutus5000.bireus.service.CheckoutException;
-import net.brutus5000.bireus.service.DownloadService;
-import net.brutus5000.bireus.service.NotificationService;
-import net.brutus5000.bireus.service.RepositoryService;
+import net.brutus5000.bireus.service.*;
+import org.apache.commons.io.FileUtils;
+import org.jgrapht.io.ImportException;
 
 import java.io.IOException;
 import java.net.URL;
@@ -21,7 +15,7 @@ import java.text.MessageFormat;
 
 @Slf4j
 public class BireusClient {
-    private RepositoryService repositoryService = null;
+    private final RepositoryService repositoryService;
 
     public BireusClient(Path repositoryPath, NotificationService notificationService, DownloadService downloadService) throws BireusException {
         try {
