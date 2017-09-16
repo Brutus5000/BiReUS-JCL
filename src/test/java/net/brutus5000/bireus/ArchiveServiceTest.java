@@ -18,9 +18,9 @@ import static net.brutus5000.bireus.TestUtil.assertFileEquals;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ArchiveServiceTest {
-    Path archiveData;
-    Path tempDirectory;
-    Path rawData;
+    private Path archiveData;
+    private Path tempDirectory;
+    private Path rawData;
 
     @Before
     public void setup() throws Exception {

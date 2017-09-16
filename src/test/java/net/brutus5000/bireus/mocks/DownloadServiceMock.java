@@ -13,8 +13,8 @@ import java.util.Deque;
  * A simple DownloadService mock, where you can add all actions to a queue
  */
 public class DownloadServiceMock implements DownloadService {
-    Deque<ReadAction> readActions = new ArrayDeque<>();
-    Deque<DownloadAction> downloadActions = new ArrayDeque<>();
+    private Deque<ReadAction> readActions = new ArrayDeque<>();
+    private Deque<DownloadAction> downloadActions = new ArrayDeque<>();
 
     public void addDownloadAction(DownloadAction action) {
         downloadActions.add(action);

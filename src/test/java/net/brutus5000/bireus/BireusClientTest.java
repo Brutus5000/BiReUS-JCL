@@ -30,12 +30,12 @@ import static net.brutus5000.bireus.TestUtil.assertZipFileEquals;
 public class BireusClientTest {
 
     @Mock
-    NotificationService notificationService;
-    DownloadServiceMock downloadService;
-    BireusClient instance;
-    Path clientRepositoryPath;
-    Path firstVersionPath;
-    Path latestVersionPath;
+    private NotificationService notificationService;
+    private DownloadServiceMock downloadService;
+    private BireusClient instance;
+    private Path clientRepositoryPath;
+    private Path firstVersionPath;
+    private Path latestVersionPath;
 
     @Before
     public void setUp() throws Exception {
