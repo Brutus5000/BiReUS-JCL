@@ -83,8 +83,8 @@ public class RepositoryService {
     }
 
     public void checkout(String version) throws CheckoutException {
-        assert Objects.nonNull(downloadService);
-        assert Objects.nonNull(notificationService);
+         Objects.requireNonNull(downloadService);
+         Objects.requireNonNull(notificationService);
 
         log.info("Checking out version `{}` from repository `{}`", version, repository.getName());
         notificationService.beginCheckoutVersion(version);
