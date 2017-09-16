@@ -59,7 +59,7 @@ public class RepositoryService {
     public void checkoutLatestVersion() throws CheckoutException {
         try {
             updateRepositoryFromRemote();
-        } catch (Exception e) {
+        } catch (IOException e) {
             log.warn("Update repository info from remote failed, use local instead", e);
         }
 
@@ -69,15 +69,14 @@ public class RepositoryService {
     public boolean checkVersionExists(String version) {
         if (versionGraph.containsVertex(version)) {
             return true;
-        } else {
-            try {
-                updateRepositoryFromRemote();
-                return versionGraph.containsVertex(version);
-            } catch (Exception e) {
-                log.error("An error occurred during updating from remote repository", e);
-                return false;
-            }
         }
+        try {
+            updateRepositoryFromRemote();
+        } catch (IOException e) {
+            log.error("An error occurred during updating from remote repository", e);
+            return false;
+        }
+        return versionGraph.containsVertex(version);
     }
 
     public void checkout(String version) throws CheckoutException {
@@ -169,19 +168,19 @@ public class RepositoryService {
         val url = repository.getRemotePatchURL(versionFrom, versionTo);
         val patchPath = repository.getPatchPath(versionFrom, versionTo);
 
+        patchEventListener.beginDownloadPatch(url);
+        Files.createDirectories(patchPath.getParent());
+
         try {
-            patchEventListener.beginDownloadPatch(url);
-            Files.createDirectories(patchPath.getParent());
             downloadService.download(url, patchPath);
-            patchEventListener.finishDownloadPatch(url);
-        } catch (IOException e) {
+        } catch (DownloadException e) {
             patchEventListener.error(MessageFormat.format("Downloading patch-file failed from `{0}`", url));
-            log.error("Downloading patch-file failed from `{}`", url, e);
-            throw e;
+            throw new DownloadException(e, url);
         }
+        patchEventListener.finishDownloadPatch(url);
     }
 
-    private void updateRepositoryFromRemote() throws Exception {
+    private void updateRepositoryFromRemote() throws IOException {
         log.debug("Download repository info from remote");
         val infoJsonBytes = downloadService.read(repository.getRemoteInfoURL());
         val newRepository = objectMapper.readValue(infoJsonBytes, Repository.class);

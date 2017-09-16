@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -39,8 +40,7 @@ public class ArchiveService {
                     try (OutputStream outputStream = Files.newOutputStream(path)) {
                         IOUtils.copy(archiveInputStream, outputStream);
                     } catch (IOException e) {
-                        log.error("Error on writing file `{0}`", entry.getName(), e);
-                        throw e;
+                        throw new IOException(MessageFormat.format("Error when writing file '{0}'", entry.getName()), e);
                     }
                 }
             }
@@ -55,8 +55,7 @@ public class ArchiveService {
 
             extractArchiveStream(zipInputStream, targetDirectory);
         } catch (IOException e) {
-            log.error("Error on extracting zip-file `{}`", archiveFile, e);
-            throw e;
+            throw new IOException(MessageFormat.format("Error on extracting zip-file '{0}'", archiveFile), e);
         }
     }
 
@@ -67,8 +66,7 @@ public class ArchiveService {
 
             extractArchiveStream(tarArchiveInputStream, targetDirectory);
         } catch (IOException e) {
-            log.error("Error on extracting tar-file `{}`", archiveFile, e);
-            throw e;
+            throw new IOException(MessageFormat.format("Error on extracting tar-file '{0}'", archiveFile), e);
         }
     }
 

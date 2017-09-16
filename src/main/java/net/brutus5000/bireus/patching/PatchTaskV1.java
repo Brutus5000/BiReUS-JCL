@@ -73,18 +73,15 @@ public class PatchTaskV1 extends PatchTask {
                     // check the original file before patching (in basePath)
                     String crcBeforePatching = "0x" + Long.toHexString(FileUtils.checksumCRC32(basePath.toFile()));
                     if (!Objects.equals(item.getBaseCrc(), crcBeforePatching)) {
-                        val exception = new CrcMismatchException(basePath, item.getBaseCrc(), crcBeforePatching);
-                        log.error("CRC mismatch in unpatched base file `{}` (expected={}, actual={}), patching aborted", basePath, item.getBaseCrc(), crcBeforePatching, exception);
                         patchEventListener.crcMismatch(basePath);
-                        throw exception;
+                        throw new CrcMismatchException(basePath, item.getBaseCrc(), crcBeforePatching);
                     }
 
                     Path patchedTempPath = Paths.get(patchPath + ".patched");
                     try {
                         Patch.patch(basePath.toFile(), patchedTempPath.toFile(), patchPath.toFile());
                     } catch (CompressorException | InvalidHeaderException e) {
-                        log.error("Error on applying bsdiff4", e);
-                        throw new IOException(e);
+                        throw new IOException("Error on applying bsdiff4", e);
                     }
 
                     // the .patched-file replaces the original bsdiff4 file

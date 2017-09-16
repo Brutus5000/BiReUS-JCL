@@ -31,16 +31,12 @@ public class BireusClient {
         try {
             if (!Files.isDirectory(path)) {
                 String message = MessageFormat.format("Path {0} is not a directory", path);
-                BireusException e = new BireusException(message, null);
-                log.error(message, e);
-                throw e;
+                throw new BireusException(message, null);
             }
 
             if (Files.exists(path) && Files.list(path).count() > 0) {
                 String message = MessageFormat.format("Directory {0} is not empty", path);
-                BireusException e = new BireusException(message, null);
-                log.error(message, e);
-                throw e;
+                throw new BireusException(message, null);
             }
 
             URL infoJsonURL = new URL(url, "/" + Repository.BIREUS_INFO_FILE);
@@ -75,9 +71,8 @@ public class BireusClient {
             FileUtils.deleteDirectory(temporaryDirectory.toFile());
             return new BireusClient(path, patchEventListener, downloadService);
         } catch (IOException e) {
-            log.error("Error while loading repository from URL {}", url, e);
             FileUtils.deleteQuietly(path.toFile());
-            throw new BireusException(e.getMessage(), e);
+            throw new BireusException(MessageFormat.format("Error while loading repository from URL {0}", url), e);
         }
     }
 

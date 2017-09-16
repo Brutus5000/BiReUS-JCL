@@ -9,11 +9,10 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.tukaani.xz.XZFormatException;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.zip.ZipException;
 
 import static net.brutus5000.bireus.TestUtil.assertFileEquals;
 
@@ -49,7 +48,7 @@ public class ArchiveServiceTest {
         assertFileEquals(tempDirectory, rawData, Paths.get("sub", "subfolder-file.txt"));
     }
 
-    @Test(expected = ZipException.class)
+    @Test(expected = IOException.class)
     public void testExtractZip_WrongFormat() throws Exception {
         Path testArchive = archiveData.resolve("tar_xz/test.tar.xz");
 
@@ -82,7 +81,7 @@ public class ArchiveServiceTest {
         assertFileEquals(tempDirectory, rawData, Paths.get("sub", "subfolder-file.txt"));
     }
 
-    @Test(expected = XZFormatException.class)
+    @Test(expected = IOException.class)
     public void testExtractTarXz_WrongFileType() throws Exception {
         Path testArchive = archiveData.resolve("zip/test.zip");
 
