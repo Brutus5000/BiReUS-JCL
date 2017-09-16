@@ -7,9 +7,6 @@ For more details about BiReUS see the related [wiki](https://github.com/Brutus50
 
 [![Build status](https://travis-ci.org/Brutus5000/BiReUS-JCL.svg?branch=master)](https://travis-ci.org/Brutus5000/BiReUS-jcl)
 
-**Attention Non-Windows users:**
-To run the unit tests without failing, all .txt files in src/test/resources need to have their original line endings (see .travis.yml for fix).
-
 ## Dependencies
 * **Lombok** for less code overhead
 * **Apache Commons IO and Compress** for handling (compressed) files

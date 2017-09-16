@@ -7,8 +7,6 @@ jdk:
 
 before_install:
  - sudo apt-get -qq update
- - sudo apt-get install -y dos2unix
- - find ./src/test/ -name '*.txt' | xargs unix2dos
  - chmod +x gradlew
 
 script:
