@@ -20,8 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.*;
 import static net.brutus5000.bireus.TestUtil.assertFileEquals;
 import static net.brutus5000.bireus.TestUtil.assertZipFileEquals;
 
@@ -53,7 +52,7 @@ public class BireusClientTest {
     public void testGetFromURL() throws Exception {
         clientRepositoryPath = TestPreparator.prepareDownloadForLatestClientRepository(downloadService);
 
-        instance = BireusClient.getFromURL(new URL("http://someurl"), clientRepositoryPath, patchEventListener, downloadService);
+        instance = BireusClient.getFromURL(new URL("http://someurl/somefolder"), clientRepositoryPath, patchEventListener, downloadService);
 
         assertTrue(Files.exists(clientRepositoryPath.resolve(Repository.BIREUS_INTERAL_FOLDER).resolve(Repository.BIREUS_INFO_FILE)));
         assertTrue(Files.exists(clientRepositoryPath.resolve(Repository.BIREUS_INTERAL_FOLDER).resolve(Repository.BIREUS_VERSIONS_FILE)));
@@ -69,11 +68,15 @@ public class BireusClientTest {
     public void testCheckoutV1() throws Exception {
         testGetFromURL();
 
-        downloadService.addDownloadAction((url, path) -> Files.copy(
-                TestPreparator.getServerRepositoryPath()
-                        .resolve(Repository.BIREUS_PATCHES_SUBFOLDER)
-                        .resolve(MessageFormat.format(Repository.BIREUS_PATCH_FILE_PATTERN, "v2", "v1")),
-                path));
+        downloadService.addDownloadAction((url, path) -> {
+                    assertEquals(url.toString(), "http://someurl/somefolder/" + Repository.BIREUS_PATCHES_SUBFOLDER + "/" + MessageFormat.format(Repository.BIREUS_PATCH_FILE_PATTERN, "v2", "v1"));
+                    Files.copy(
+                            TestPreparator.getServerRepositoryPath()
+                                    .resolve(Repository.BIREUS_PATCHES_SUBFOLDER)
+                                    .resolve(MessageFormat.format(Repository.BIREUS_PATCH_FILE_PATTERN, "v2", "v1")),
+                            path);
+                }
+        );
 
         instance.checkoutVersion("v1");
 
