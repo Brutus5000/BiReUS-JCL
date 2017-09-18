@@ -19,8 +19,10 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-databind:2.8.8.1'
     compile 'com.github.jgrapht.jgrapht:jgrapht-core:ba745d130dd9934ac9e0265bf2e594dc96ad0739' // 1.0.1 does not properly support .gml imports
     compile 'com.github.jgrapht.jgrapht:jgrapht-ext:ba745d130dd9934ac9e0265bf2e594dc96ad0739' // 1.0.1 does not properly support .gml imports
+    compile 'com.github.jgrapht.jgrapht:jgrapht-io:ba745d130dd9934ac9e0265bf2e594dc96ad0739' // 1.0.1 does not properly support .gml imports
 //    compile 'org.jgrapht:jgrapht-core:1.0.1'
 //    compile 'org.jgrapht:jgrapht-ext:1.0.1'
+//    compile 'org.jgrapht:jgrapht-io:1.0.1'
     compile 'commons-io:commons-io:2.5'
     compile 'ch.qos.logback:logback-classic:1.2.3'
     compile 'org.apache.commons:commons-compress:1.13'
