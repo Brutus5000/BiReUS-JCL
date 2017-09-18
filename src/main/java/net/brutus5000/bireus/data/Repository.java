@@ -50,7 +50,7 @@ public class Repository {
      */
     @SneakyThrows
     public URL getRemoteInfoURL() {
-        return new URL(url + BIREUS_INFO_FILE);
+        return new URL(url + "/" + BIREUS_INFO_FILE);
     }
 
     /**
@@ -67,7 +67,7 @@ public class Repository {
      */
     @SneakyThrows
     public URL getRemoteVersionGraphURL() {
-        return new URL(url + BIREUS_VERSIONS_FILE);
+        return new URL(url + "/" + BIREUS_VERSIONS_FILE);
     }
 
     /**
